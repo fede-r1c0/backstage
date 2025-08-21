@@ -37,17 +37,28 @@ Thumbs.db
 
 # === Node/JS/Frontend ===
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
 dist/
+dist-types/
 build/
 coverage/
 .cache/
 .next/
 out/
 storybook-static/
+.env
+.env.test
+.nvmrc
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # === Python ===
 __pycache__/
@@ -174,6 +185,16 @@ temp/
 *.swo
 
 # === Project-specific ===
+
+# Local configuration files
+*.local.yaml
+
+# vscode database functionality support files
+*.session.sql
+
+# Sensitive credentials
+*-credentials.yaml
+
 # Ignore local cursor/rules and editor state
 .cursor/
 !.cursor/rules/
@@ -189,5 +210,8 @@ site/
 test-output/
 test-results/
 junit.xml
+
+# E2E test reports
+e2e-test-report/
 
 # === End of .gitignore ===
