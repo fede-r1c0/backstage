@@ -1,7 +1,19 @@
-version: '3.8'
 services:
+  backend:
+    depends_on:
+      - db
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    env_file:
+      - app-config.env
+    networks:
+      - backstage
+    ports:
+      - 7007:7007
+
   db:
-    image: postgres
+    image: postgres:17.6-alpine3.21
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -9,6 +21,16 @@ services:
       - backstage
     ports:
       - 5432:5432
+
+  pgadmin:
+    image: dpage/pgadmin4:9.7.0
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin@example.com
+      PGADMIN_DEFAULT_PASSWORD: pgadmin
+    networks:
+      - backstage
+    ports:
+      - 8080:80
 
 networks:
   backstage:
