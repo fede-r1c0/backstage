@@ -47,6 +47,7 @@ out/
 storybook-static/
 .env
 .env.test
+!.env.example
 .nvmrc
 .pnp.*
 .yarn/*
