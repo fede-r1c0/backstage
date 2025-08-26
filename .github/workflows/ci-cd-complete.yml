@@ -31,6 +31,29 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Asegurar que se copien TODOS los archivos
+          fetch-depth: 0
+          # Verificar que yarn.lock esté presente
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify repository structure
+        run: |
+          echo "🔍 Verificando estructura del repositorio..."
+          echo "📁 Contenido del directorio:"
+          ls -la
+          echo ""
+          echo "📄 yarn.lock existe:"
+          if [ -f "yarn.lock" ]; then
+            echo "✅ yarn.lock encontrado"
+            echo "📏 Tamaño: $(wc -l < yarn.lock) líneas"
+            echo "🔑 Hash: $(sha256sum yarn.lock | cut -d' ' -f1)"
+          else
+            echo "❌ yarn.lock NO encontrado"
+            echo "📁 Contenido de packages/:"
+            ls -la packages/ || echo "No packages/ directory"
+            exit 1
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -48,12 +71,21 @@ jobs:
             ${{ steps.yarn-cache-dir.outputs.dir }}
             .yarn/cache
             .yarn/install-state.gz
+            node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: |
+          echo "📦 Instalando dependencias..."
+          # Intentar primero con --immutable, fallback a --frozen-lockfile
+          if yarn install --immutable; then
+            echo "✅ Instalación exitosa con --immutable"
+          else
+            echo "⚠️ Fallback a --frozen-lockfile"
+            yarn install --frozen-lockfile
+          fi
 
       - name: Run linters
         run: |
