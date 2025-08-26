@@ -50,9 +50,14 @@ jobs:
             echo "🔑 Hash: $(sha256sum yarn.lock | cut -d' ' -f1)"
           else
             echo "❌ yarn.lock NO encontrado"
-            echo "📁 Contenido de packages/:"
-            ls -la packages/ || echo "No packages/ directory"
-            exit 1
+            echo "📁 Contenido de .yarn/:"
+            ls -la .yarn/ || echo "No .yarn/ directory"
+            echo ""
+            echo "📄 .yarnrc.yml contenido:"
+            cat .yarnrc.yml || echo "No .yarnrc.yml"
+            echo ""
+            echo "📦 package.json scripts disponibles:"
+            cat package.json | grep -A 20 '"scripts"' || echo "No scripts found"
           fi
 
       - name: Setup Node.js
@@ -72,20 +77,31 @@ jobs:
             .yarn/cache
             .yarn/install-state.gz
             node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          # Cache key que funciona con o sin yarn.lock
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') || 'no-lock' }}
           restore-keys: |
             ${{ runner.os }}-yarn-
 
       - name: Install dependencies
         run: |
           echo "📦 Instalando dependencias..."
-          # Intentar primero con --immutable, fallback a --frozen-lockfile
-          if yarn install --immutable; then
-            echo "✅ Instalación exitosa con --immutable"
-          else
-            echo "⚠️ Fallback a --frozen-lockfile"
-            yarn install --frozen-lockfile
+          echo "🔒 yarn.lock debe estar presente en el repo"
+
+          # Verificar que yarn.lock esté presente
+          if [ ! -f "yarn.lock" ]; then
+            echo "❌ ERROR: yarn.lock no encontrado"
+            echo "💡 Solución: Commit yarn.lock al repositorio"
+            echo "📋 Comandos:"
+            echo "   yarn install  # Generar lockfile"
+            echo "   git add yarn.lock"
+            echo "   git commit -m 'add yarn.lock'"
+            echo "   git push origin main"
+            exit 1
           fi
+
+          # Instalar con lockfile existente
+          yarn install --immutable
+          echo "✅ Instalación exitosa con --immutable"
 
       - name: Run linters
         run: |
