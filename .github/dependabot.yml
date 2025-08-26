@@ -1,0 +1,60 @@
+# Dependabot configuration for Backstage
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # Enable version updates for npm dependencies
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+
+    # Group updates to reduce PR noise
+    groups:
+      # Group all patch updates together
+      patch-updates:
+        patterns:
+          - '*'
+        update-types:
+          - 'patch'
+
+      # Group minor updates for major packages
+      minor-updates:
+        patterns:
+          - '@backstage/*'
+          - 'typescript'
+          - 'react'
+          - 'react-dom'
+        update-types:
+          - 'minor'
+
+    # Ignore certain packages that might cause issues
+    ignore:
+      # Ignore major version updates that might break things
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@backstage/*'
+        update-types: ['version-update:semver-major']
+
+    # Commit message format
+    commit-message:
+      prefix: 'chore'
+      prefix-development: 'chore'
+      include: 'scope'
+
+    # Labels for PRs
+    labels:
+      - 'dependencies'
+      - 'automated'
+      - 'security'
+
+    # Assignees for PRs
+    assignees:
+      - 'fede-r1c0'
+
+    # Target branch
+    target-branch: 'main'
+
+    # Open PRs limit
+    open-pull-requests-limit: 10
