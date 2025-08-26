@@ -8,10 +8,11 @@ on:
       - 'package.json'
       - 'yarn.lock'
       - 'app-config*.yaml'
-      - 'plugins/**'
-      - 'examples/**'
       - 'catalog-info.yaml'
       - 'backstage.json'
+      - 'plugins/**'
+      - 'examples/**'
+      - '.github/workflows/**'
   pull_request:
     branches: [main]
     paths:
@@ -19,10 +20,11 @@ on:
       - 'package.json'
       - 'yarn.lock'
       - 'app-config*.yaml'
-      - 'plugins/**'
-      - 'examples/**'
       - 'catalog-info.yaml'
       - 'backstage.json'
+      - 'plugins/**'
+      - 'examples/**'
+      - '.github/workflows/**'
   release:
     types: [created]
   workflow_dispatch:
@@ -184,7 +186,6 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
-            type=ref,event=branch
             type=sha,prefix={{branch}}-
             type=raw,value={{date 'YYYYMMDD'}}-{{sha}},enable={{is_default_branch}}
 
