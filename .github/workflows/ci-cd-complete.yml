@@ -125,7 +125,8 @@ jobs:
 
           # Yarn 4 usa 'yarn npm audit' en lugar de 'yarn audit'
           # npm directo no funciona porque no hay package-lock.json
-          yarn npm audit --audit-level moderate || echo "⚠️ Some vulnerabilities found"
+          # Usar comando más eficiente: solo vulnerabilidades moderadas o más críticas
+          yarn npm audit --severity moderate --recursive || echo "⚠️ Some vulnerabilities found"
 
   # Job 2: Build Backstage
   build-backend:
@@ -224,6 +225,10 @@ jobs:
     needs: build-backend
     if: github.event_name != 'pull_request'
     continue-on-error: true
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
 
     steps:
       - name: Checkout repository
@@ -261,7 +266,7 @@ jobs:
   pipeline-summary:
     name: 📊 Pipeline Summary
     runs-on: ubuntu-24.04
-    needs: [validate, build-backend]
+    needs: [validate, build-backend, security-scan]
     if: always()
 
     steps:
