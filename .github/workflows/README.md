@@ -21,7 +21,7 @@
 - **Características**:
   - ✅ Linting y type checking
   - ✅ Security scanning (Trivy)
-  - ✅ Performance testing
+
   - ✅ Multi-environment support
   - ✅ Deploy notifications
 

@@ -14,10 +14,10 @@
 - ⏱️ ~3-5 minutos
 
 ### 2. `ci-cd-complete.yml` - Pipeline Completo
-**Propósito**: CI/CD completo con validación, seguridad y performance
+**Propósito**: CI/CD completo con validación y seguridad
 - ✅ Linting y type checking
 - ✅ Security scanning con Trivy
-- ✅ Performance testing
+
 - ✅ Multi-environment support
 - ⏱️ ~8-12 minutos
 
@@ -58,7 +58,7 @@
 │                                                    │            │
 │                                                    ▼            │
 │                                        ┌─────────────────┐     │
-│                                        │Performance Test │     │
+│                                        │                │     │
 │                                        │  (Load Test)    │     │
 │                                        └─────────────────┘     │
 │                                                    │            │
@@ -154,7 +154,7 @@ cache-to: type=gha,mode=max
 | Build inicial | 8-10 min | $0.08 |
 | Build con cache | 3-4 min | $0.03 |
 | PR validation | 2-3 min | $0.02 |
-| Full CI/CD | 10-12 min | $0.10 |
+| Full CI/CD | 8-10 min | $0.08 |
 
 **Costo mensual estimado**: $0 (dentro del free tier de 2000 minutos)
 

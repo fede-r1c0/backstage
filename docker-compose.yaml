@@ -2,9 +2,10 @@ services:
   backend:
     depends_on:
       - db
-    build:
-      context: .
-      dockerfile: packages/backend/Dockerfile
+    image: ghcr.io/fede-r1c0/backstage:latest
+    #build:
+    #  context: .
+    #  dockerfile: packages/backend/Dockerfile
     env_file:
       - .env
     networks:
