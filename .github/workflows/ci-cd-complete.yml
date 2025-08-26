@@ -121,14 +121,11 @@ jobs:
       - name: Security audit
         run: |
           echo "🔐 Security audit..."
+          echo "🔍 Usando yarn npm audit (Yarn 4 compatible)..."
+
           # Yarn 4 usa 'yarn npm audit' en lugar de 'yarn audit'
-          if command -v npm &> /dev/null; then
-            echo "📦 Usando npm audit..."
-            npm audit --audit-level moderate || echo "⚠️ Some vulnerabilities found"
-          else
-            echo "🔍 Usando yarn npm audit..."
-            yarn npm audit --audit-level moderate || echo "⚠️ Some vulnerabilities found"
-          fi
+          # npm directo no funciona porque no hay package-lock.json
+          yarn npm audit --audit-level moderate || echo "⚠️ Some vulnerabilities found"
 
   # Job 2: Build Backstage
   build-backend:
@@ -220,7 +217,7 @@ jobs:
           docker stop test-backstage && docker rm test-backstage
           echo "✅ Image test passed"
 
-  # Job 3: Análisis de Seguridad
+    # Job 3: Análisis de Seguridad
   security-scan:
     name: 🔐 Security Scan
     runs-on: ubuntu-24.04
@@ -229,6 +226,12 @@ jobs:
     continue-on-error: true
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Solo necesitamos el código para el upload SARIF
+          fetch-depth: 1
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
