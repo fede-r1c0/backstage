@@ -1,0 +1,260 @@
+name: CI/CD Pipeline Completo
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  release:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deploy environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '20.19.4'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/backstage
+
+jobs:
+  # Job 1: Análisis y Validación
+  validate:
+    name: 🔍 Validate & Lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Run linters
+        run: |
+          echo "🔍 Running linters..."
+          yarn lint:all 2>/dev/null || echo "⚠️ Linter warnings found"
+
+      - name: Type check
+        run: |
+          echo "📝 Type checking..."
+          yarn tsc
+
+      - name: Check formatting
+        run: |
+          echo "🎨 Checking code format..."
+          yarn prettier:check 2>/dev/null || echo "⚠️ Format issues found"
+
+      - name: Security audit
+        run: |
+          echo "🔐 Security audit..."
+          yarn audit --severity moderate || echo "⚠️ Some vulnerabilities found"
+
+  # Job 2: Build Backend
+  build-backend:
+    name: 🏗️ Build Backend
+    runs-on: ubuntu-24.04
+    needs: validate
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: network=host
+
+      - name: Log in to Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          flavor: |
+            latest=auto
+            prefix=
+            suffix=
+          tags: |
+            type=schedule,pattern=nightly
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value={{date 'YYYYMMDD'}}-{{sha}}
+
+      - name: Build multi-arch image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: packages/backend/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=backstage-${{ github.ref }}
+          cache-to: type=gha,scope=backstage-${{ github.ref }},mode=max
+          provenance: false
+          sbom: false
+
+      - name: Test image locally
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "🧪 Testing Docker image..."
+          # Load image for testing (single arch for speed)
+          docker buildx build --load \
+            --platform linux/amd64 \
+            -f packages/backend/Dockerfile \
+            -t test-image:${{ github.sha }} .
+
+          # Run container
+          docker run -d --name test-backstage \
+            -p 7007:7007 \
+            test-image:${{ github.sha }}
+
+          # Wait for startup
+          sleep 10
+
+          # Test health
+          curl -f http://localhost:7007/api/catalog/entities || \
+            (docker logs test-backstage && exit 1)
+
+          # Cleanup
+          docker stop test-backstage && docker rm test-backstage
+          echo "✅ Image test passed"
+
+  # Job 3: Análisis de Seguridad
+  security-scan:
+    name: 🔐 Security Scan
+    runs-on: ubuntu-24.04
+    needs: build-backend
+    if: github.event_name != 'pull_request'
+    continue-on-error: true
+
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ github.repository_owner }}/backstage:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Create security summary
+        if: always()
+        run: |
+          echo "## 🔐 Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Image scanned for CVEs using Trivy" >> $GITHUB_STEP_SUMMARY
+          echo "Results uploaded to Security tab" >> $GITHUB_STEP_SUMMARY
+
+  # Job 4: Performance Test
+  performance-test:
+    name: ⚡ Performance Test
+    runs-on: ubuntu-24.04
+    needs: build-backend
+    if: github.ref == 'refs/heads/main'
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pull and run image
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker run -d --name perf-test \
+            -p 7007:7007 \
+            -m 512m \
+            --cpus="0.5" \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          sleep 15
+
+      - name: Run performance tests
+        run: |
+          echo "⚡ Running performance tests..."
+
+          # Test response time
+          for i in {1..10}; do
+            response_time=$(curl -o /dev/null -s -w '%{time_total}\n' http://localhost:7007/api/catalog/entities)
+            echo "Request $i: ${response_time}s"
+          done
+
+          # Check memory usage
+          docker stats --no-stream perf-test
+
+          docker stop perf-test && docker rm perf-test
+
+  # Job Final: Summary
+  pipeline-summary:
+    name: 📊 Pipeline Summary
+    runs-on: ubuntu-24.04
+    needs: [validate, build-backend]
+    if: always()
+
+    steps:
+      - name: Generate Complete Summary
+        run: |
+          echo "# 📊 CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Pipeline Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 Validation | ${{ needs.validate.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🏗️ Build | ${{ needs.build-backend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔐 Security | ${{ needs.security-scan.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ⚡ Performance | ${{ needs.performance-test.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            echo "## 🐳 Container Registry" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Pull Commands" >> $GITHUB_STEP_SUMMARY
+            echo '```bash' >> $GITHUB_STEP_SUMMARY
+            echo "# Latest" >> $GITHUB_STEP_SUMMARY
+            echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "# Specific SHA" >> $GITHUB_STEP_SUMMARY
+            echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Time**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

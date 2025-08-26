@@ -1,0 +1,107 @@
+name: Build Backstage Docker Image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/backend/**'
+      - 'packages/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.github/workflows/build-backstage-backend.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/backend/**'
+      - 'packages/**'
+      - 'package.json'
+      - 'yarn.lock'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/backstage
+  NODE_VERSION: '20.19.4'
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Setup Docker Buildx para multi-arch
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: network=host
+
+      # Login a GitHub Container Registry (solo en main)
+      - name: Log in to Container Registry
+        if: github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Extract metadata para tagging
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      # Build y push multi-arch Docker image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: packages/backend/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # GitHub Actions cache (más rápido que registry cache)
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # Optimización: reduce tamaño
+          provenance: false
+
+      # Output build summary
+      - name: Image Build Summary
+        if: always()
+        run: |
+          echo "## 📦 Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Node Version**: ${{ env.NODE_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Platforms**: linux/amd64, linux/arm64" >> $GITHUB_STEP_SUMMARY
+          echo "- **Registry**: ${{ env.REGISTRY }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image**: ${{ env.IMAGE_NAME }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "✅ **Image pushed to registry**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Pull command:" >> $GITHUB_STEP_SUMMARY
+            echo '```bash' >> $GITHUB_STEP_SUMMARY
+            echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ **Image built but not pushed (PR build)**" >> $GITHUB_STEP_SUMMARY
+          fi
