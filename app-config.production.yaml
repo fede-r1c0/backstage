@@ -13,6 +13,11 @@ backend:
   # all interfaces, the most permissive setting. The right value depends on your specific deployment.
   listen: ':443'
 
+  cors:
+    origin: https://backstage.feder1c0.tech
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+
   # config options: https://node-postgres.com/apis/client
   database:
     client: pg
