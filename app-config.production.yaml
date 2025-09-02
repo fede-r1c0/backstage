@@ -53,6 +53,22 @@ auth:
             # See https://backstage.io/docs/auth/github/provider#resolvers for more resolvers.
             - resolver: usernameMatchingUserEntityName
 
+proxy:
+  '/argocd/api':
+    target: https://argocd.feder1c0.tech/api/v1/
+    changeOrigin: true
+    # only if your argocd api has self-signed cert
+    secure: false
+    headers:
+      Cookie:
+        $env: ARGOCD_AUTH_TOKEN
+  ### Example for how to add a proxy endpoint for the frontend.
+  ### A typical reason to do this is to handle HTTPS and CORS for internal services.
+  # endpoints:
+  #   '/test':
+  #     target: 'https://example.com'
+  #     changeOrigin: true
+
 catalog:
   # Overrides the default list locations from app-config.yaml as these contain example data.
   # See https://backstage.io/docs/features/software-catalog/#adding-components-to-the-catalog for more details
