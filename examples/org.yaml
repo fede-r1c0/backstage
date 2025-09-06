@@ -7,6 +7,13 @@ metadata:
 spec:
   memberOf: [guests]
 ---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: fede-r1c0
+spec:
+  memberOf: [infra]
+---
 # https://backstage.io/docs/features/software-catalog/descriptor-format#kind-group
 apiVersion: backstage.io/v1alpha1
 kind: Group
@@ -16,9 +23,26 @@ spec:
   type: team
   children: []
 ---
+# https://backstage.io/docs/features/software-catalog/descriptor-format#kind-group
 apiVersion: backstage.io/v1alpha1
-kind: User
+kind: Group
 metadata:
-  name: fede-r1c0
+  name: developers
 spec:
-  memberOf: [guests]
+  type: team
+  profile:
+    email: developers@feder1c0.tech
+    picture: https://i.imgur.com/eMtRsuB.png
+  children: []
+---
+# https://backstage.io/docs/features/software-catalog/descriptor-format#kind-group
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: infra
+spec:
+  type: team
+  profile:
+    email: infra@feder1c0.tech
+    picture: https://i.imgur.com/beWLs9p.png
+  children: []
