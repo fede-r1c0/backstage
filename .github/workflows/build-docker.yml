@@ -71,6 +71,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Sanitizar nombre del branch para Docker tags
+      - name: Sanitize branch name
+        id: branch
+        run: |
+          # Extraer nombre del branch y sanitizarlo para Docker tags
+          BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+          # Reemplazar caracteres inválidos con guiones y eliminar guiones al inicio/final
+          SANITIZED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9._-]/-/g' | sed 's/^[-]*//' | sed 's/[-]*$//')
+          # Si está vacío o solo guiones, usar 'pr'
+          if [ -z "$SANITIZED_BRANCH" ] || [ "$SANITIZED_BRANCH" = "-" ]; then
+            SANITIZED_BRANCH="pr"
+          fi
+          echo "branch=$SANITIZED_BRANCH" >> $GITHUB_OUTPUT
+          echo "Original branch: $BRANCH_NAME"
+          echo "Sanitized branch: $SANITIZED_BRANCH"
+
       # Extract metadata para tagging
       - name: Extract metadata
         id: meta
@@ -79,7 +95,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,prefix={{branch}}-
+            type=sha,prefix=${{ steps.branch.outputs.branch }}-
             type=raw,value={{date 'YYYYMMDD'}}-{{sha}},enable={{is_default_branch}}
 
       # Build y push multi-arch Docker image
