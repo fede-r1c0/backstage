@@ -21,12 +21,10 @@ This project implements a professional-grade Internal Developer Platform using *
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Backstage     │    │   Kubernetes    │    │   ArgoCD        │
-│   Web Interface │───►│   (k3s +        │───►│   (GitOps)      │
-│   (Browser)     │    │    Cilium)      │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+```mermaid
+graph LR
+    A[Backstage Web Interface] --> B[Kubernetes k3s + Cilium]
+    B --> C[ArgoCD GitOps]
 ```
 
 **Simple and Clean**: Backstage web interface runs on Kubernetes, managed by ArgoCD for GitOps deployment.
@@ -146,22 +144,73 @@ Our CI/CD pipeline automatically:
 
 ## 🔌 Plugin Ecosystem
 
-### Core Plugins
+### 🎯 Core Backstage Plugins (Incluidos por defecto)
 
-| Plugin | Purpose | Status |
-|--------|---------|--------|
-| **@backstage/plugin-catalog-backend** | Service catalog management | ✅ Included |
-| **@backstage/plugin-scaffolder-backend** | Template-based scaffolding | ✅ Included |
-| **@backstage/plugin-techdocs-backend** | Technical documentation | ✅ Included |
-| **@backstage/plugin-explore** | Service discovery | ✅ Included |
+| Plugin | Propósito | Estado |
+|--------|-----------|--------|
+| **@backstage/plugin-catalog-backend** | Gestión del catálogo de servicios | ✅ Activo |
+| **@backstage/plugin-scaffolder-backend** | Creación de proyectos desde templates | ✅ Activo |
+| **@backstage/plugin-techdocs-backend** | Documentación técnica | ✅ Activo |
+| **@backstage/plugin-search-backend** | Motor de búsqueda | ✅ Activo |
+| **@backstage/plugin-kubernetes-backend** | Integración con Kubernetes | ✅ Activo |
+| **@backstage/plugin-auth-backend** | Sistema de autenticación | ✅ Activo |
+| **@backstage/plugin-notifications-backend** | Sistema de notificaciones | ✅ Activo |
+| **@backstage/plugin-signals-backend** | Sistema de señales | ✅ Activo |
+| **@backstage/plugin-permission-backend** | Sistema de permisos | ✅ Activo |
+| **@backstage/plugin-proxy-backend** | Proxy para servicios externos | ✅ Activo |
 
-### Custom Plugins
+### 🚀 Plugins Externos Integrados
 
-| Plugin | Purpose | Status |
-|--------|---------|--------|
-| **@internal/infrastructure-plugin** | Infrastructure self-service | 🚧 In Development |
-| **@internal/monitoring-plugin** | System monitoring dashboard | 🚧 In Development |
-| **@internal/security-plugin** | Security compliance tools | 🚧 In Development |
+| Plugin | Propósito | Configuración | Estado |
+|--------|-----------|---------------|--------|
+| **@roadiehq/backstage-plugin-argo-cd** | Integración con ArgoCD para GitOps | Proxy a `192.168.70.102` | ✅ Activo |
+| **@backstage-community/plugin-github-actions** | Visualización de GitHub Actions | GitHub.com integration | ✅ Activo |
+
+### 🔧 Configuración de Integraciones
+
+#### **ArgoCD Integration**
+
+```yaml
+# app-config.yaml
+proxy:
+  '/argocd/api':
+    target: ${ARGOCD_API_URL}
+    changeOrigin: true
+    secure: false
+    headers:
+      Cookie: $env: ARGOCD_AUTH_TOKEN
+```
+
+#### **GitHub Integration**
+
+```yaml
+# app-config.yaml
+integrations:
+  github:
+    - host: github.com
+      token: ${GITHUB_TOKEN}
+
+auth:
+  providers:
+    github:
+      development:
+        clientId: ${AUTH_GITHUB_CLIENT_ID}
+        clientSecret: ${AUTH_GITHUB_CLIENT_SECRET}
+```
+
+### 📱 Implementación en EntityPage
+
+#### **ArgoCD Card**
+
+- Se muestra en Overview si está disponible
+- Integrado con `EntityArgoCDOverviewCard`
+- Condicionado por `isArgocdAvailable()`
+
+#### **GitHub Actions Tab**
+
+- Tab dedicado `/github-actions`
+- Integrado con `EntityGithubActionsContent`
+- Condicionado por `isGithubActionsAvailable()`
 
 ## 🧪 Testing
 
@@ -211,84 +260,6 @@ npm run type-check        # TypeScript compilation check
 - Secrets management via Kubernetes
 - Network policies with Cilium
 
-## 🚨 Troubleshooting
-
-### Common Issues
-
-<details>
-<summary><strong>Docker Build Fails</strong></summary>
-
-```bash
-# Clear Docker cache
-docker system prune -a
-
-# Rebuild without cache
-docker build --no-cache .
-
-# Check available disk space
-df -h
-```
-</details>
-
-<details>
-<summary><strong>Backstage Won't Start</strong></summary>
-
-```bash
-# Clean install
-rm -rf node_modules package-lock.json
-npm install
-
-# Check configuration
-npm run type-check
-npm run lint
-
-# Verify environment variables
-env | grep NODE
-```
-</details>
-
-<details>
-<summary><strong>ArgoCD Sync Issues</strong></summary>
-
-```bash
-# Check application status
-kubectl get applications -n argocd
-kubectl describe application backstage-idp -n argocd
-
-# Check pod logs
-kubectl logs -n backstage deployment/backstage-idp
-
-# Verify image exists
-docker pull fede-r1c0/backstage-idp:latest
-```
-</details>
-
-### Getting Help
-
-1. **Check the logs**: `kubectl logs -n backstage deployment/backstage-idp`
-2. **Review ArgoCD status**: Check the ArgoCD UI for sync issues
-3. **Verify configuration**: Ensure all required environment variables are set
-4. **Check network policies**: Verify Cilium policies allow necessary traffic
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Development Workflow
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
-
-### Code Standards
-
-- **TypeScript**: Strict mode enabled
-- **Testing**: Minimum 80% coverage
-- **Linting**: ESLint + Prettier
-- **Commits**: Conventional commit format
-
 ## 📚 Documentation
 
 - **[Deployment Guide](docs/DEPLOYMENT.md)**: Detailed deployment instructions
@@ -296,45 +267,6 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 - **[API Reference](docs/API.md)**: Backend API documentation
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)**: Common issues and solutions
 
-## 🏗️ Roadmap
-
-### Q1 2024
-- [x] Project setup and basic Backstage configuration
-- [x] Docker image with security best practices
-- [x] CI/CD pipeline with security scanning
-- [ ] Basic plugin ecosystem
-
-### Q2 2024
-- [ ] Infrastructure self-service plugin
-- [ ] Monitoring and observability integration
-- [ ] Multi-environment deployment support
-- [ ] Performance optimization
-
-### Q3 2024
-- [ ] Advanced security features
-- [ ] Multi-tenant support
-- [ ] Advanced analytics and reporting
-- [ ] Production hardening
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **[Backstage](https://backstage.io/)**: The amazing platform that makes this possible
-- **[CNCF](https://cncf.io/)**: For incubating Backstage
-- **[k3s](https://k3s.io/)**: Lightweight Kubernetes for edge computing
-- **[Cilium](https://cilium.io/)**: eBPF-based networking and security
-
-## 📞 Support
-
-- **Issues**: [GitHub Issues](https://github.com/fede-r1c0/backstage/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/fede-r1c0/backstage/discussions)
-- **Wiki**: [Project Wiki](https://github.com/fede-r1c0/backstage/wiki)
-
----
-
-**Built with ❤️ for the DevOps community**
-
-*This project serves as both a learning environment and a foundation for real-world Internal Developer Platforms. Every decision prioritizes simplicity, maintainability, and production-grade standards.*
