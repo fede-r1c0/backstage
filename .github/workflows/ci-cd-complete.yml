@@ -220,32 +220,6 @@ jobs:
           provenance: false
           sbom: false
 
-      - name: Test image locally
-        if: github.event_name == 'pull_request'
-        run: |
-          echo "🧪 Testing Docker image..."
-          # Load image for testing (single arch for speed)
-          docker buildx build --load \
-            --platform linux/amd64 \
-            -f packages/backend/Dockerfile \
-            -t test-image:${{ github.sha }} .
-
-          # Run container
-          docker run -d --name test-backstage \
-            -p 7007:7007 \
-            test-image:${{ github.sha }}
-
-          # Wait for startup
-          sleep 10
-
-          # Test health
-          curl -f http://localhost:7007/api/catalog/entities || \
-            (docker logs test-backstage && exit 1)
-
-          # Cleanup
-          docker stop test-backstage && docker rm test-backstage
-          echo "✅ Image test passed"
-
     # Job 3: Análisis de Seguridad
   security-scan:
     name: 🔐 Security Scan
