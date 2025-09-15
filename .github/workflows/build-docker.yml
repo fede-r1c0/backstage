@@ -1,23 +1,18 @@
 name: Build Backstage Docker Image
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'packages/**'
-      - 'package.json'
-      - 'yarn.lock'
-      - 'app-config*.yaml'
-      - 'plugins/**'
-      - 'examples/**'
-      - '.github/workflows/**'
   pull_request:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - 'packages/**'
       - 'package.json'
+      - 'playwright.config.ts'
+      - 'tsconfig.json'
+      - 'eslint*'
       - 'yarn.lock'
       - 'app-config*.yaml'
+      - 'catalog-info.yaml'
+      - 'backstage.json'
       - 'plugins/**'
       - 'examples/**'
       - '.github/workflows/**'
