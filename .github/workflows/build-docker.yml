@@ -39,6 +39,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Validación mínima para PRs - solo verificar dependencias para el Build
+      - name: Quick PR validation
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "🔍 Running basic validation for PR..."
+          # Verificar que el Dockerfile existe
+          if [ ! -f "packages/backend/Dockerfile" ]; then
+            echo "❌ Dockerfile not found"
+            exit 1
+          fi
+          # Verificar que package.json existe
+          if [ ! -f "package.json" ]; then
+            echo "❌ package.json not found"
+            exit 1
+          fi
+          echo "✅ Basic validation passed"
+
       # Cache de Yarn para acelerar builds
       - name: Cache Yarn dependencies
         uses: actions/cache@v4
@@ -113,6 +130,8 @@ jobs:
           cache-to: type=gha,scope=backstage-main,mode=max
           # Optimización: reduce tamaño
           provenance: false
+          # Para PRs: solo build, no push
+          load: ${{ github.event_name == 'pull_request' }}
 
       # Output build summary
       - name: Image Build Summary

@@ -6,25 +6,17 @@ on:
     paths:
       - 'packages/**'
       - 'package.json'
+      - 'playwright.config.ts'
+      - 'tsconfig.json'
       - 'yarn.lock'
+      - 'eslint*'
       - 'app-config*.yaml'
       - 'catalog-info.yaml'
       - 'backstage.json'
       - 'plugins/**'
       - 'examples/**'
       - '.github/workflows/**'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'packages/**'
-      - 'package.json'
-      - 'yarn.lock'
-      - 'app-config*.yaml'
-      - 'catalog-info.yaml'
-      - 'backstage.json'
-      - 'plugins/**'
-      - 'examples/**'
-      - '.github/workflows/**'
+  # Removed pull_request trigger - PRs only run build-docker.yml
   release:
     types: [created]
   workflow_dispatch:
@@ -97,10 +89,11 @@ jobs:
             .yarn/cache
             .yarn/install-state.gz
             node_modules
-          # Cache key que funciona con o sin yarn.lock
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') || 'no-lock' }}
+          # Cache key optimizado para mejor hit rate
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
+            ${{ runner.os }}-
 
       - name: Install dependencies
         run: |
@@ -142,10 +135,6 @@ jobs:
         run: |
           echo "🔐 Security audit..."
           echo "🔍 Usando yarn npm audit (Yarn 4 compatible)..."
-
-          # Yarn 4 usa 'yarn npm audit' en lugar de 'yarn audit'
-          # npm directo no funciona porque no hay package-lock.json
-          # Usar comando más eficiente: solo vulnerabilidades moderadas o más críticas
           yarn npm audit --severity moderate --recursive || echo "⚠️ Some vulnerabilities found"
 
   # Job 2: Build Backstage
@@ -224,7 +213,7 @@ jobs:
   security-scan:
     name: 🔐 Security Scan
     runs-on: ubuntu-24.04
-    needs: build-backend
+    needs: [validate, build-backend]
     if: github.event_name != 'pull_request'
     continue-on-error: true
     permissions:
@@ -244,12 +233,12 @@ jobs:
         with:
           # Usar tag 'latest' que sabemos que existe
           image-ref: ${{ env.REGISTRY }}/${{ github.repository_owner }}/backstage:latest
+          scan-type: 'image'
           format: 'sarif'
           output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
+          severity: 'MEDIUM,HIGH,CRITICAL'
           # Solo vulnerabilidades, no secrets (más rápido)
           scanners: 'vuln'
-
       - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         if: always()
