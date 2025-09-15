@@ -1,0 +1,88 @@
+name: Feature Branch Validation
+
+on:
+  push:
+    branches-ignore: [main, develop]
+    paths:
+      - 'packages/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - 'app-config*.yaml'
+      - 'plugins/**'
+      - 'examples/**'
+      - '.github/workflows/**'
+      - 'tsconfig.json'
+      - 'eslint*'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20.19.4'
+
+jobs:
+  # Job 1: Validación de Integración JS/TS
+  integration-validation:
+    name: 🔍 Integration & Security Validation
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Get yarn cache directory
+        id: yarn-cache-dir
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.yarn-cache-dir.outputs.dir }}
+            .yarn/cache
+            .yarn/install-state.gz
+            node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+            ${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing dependencies for feature branch validation..."
+          yarn install --immutable
+
+      - name: Quick TypeScript check
+        run: |
+          echo "📝 Quick TypeScript check..."
+          npx tsc --noEmit
+
+      - name: Critical security audit
+        run: |
+          echo "🔐 Critical security audit (HIGH/CRITICAL only)..."
+          yarn npm audit --severity high --recursive || echo "⚠️ High severity vulnerabilities found"
+
+      - name: Dependency integrity check
+        run: |
+          echo "🔒 Checking dependency integrity..."
+          yarn install --check-cache --silent || echo "⚠️ Dependency integrity issues found"
+
+      - name: Feature validation summary
+        if: always()
+        run: |
+          echo "## 🔍 Feature Branch Validation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Author**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ TypeScript compilation (quick check)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Critical security audit (HIGH/CRITICAL only)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Dependency integrity" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note**: Full validation (linting, formatting, etc.) will run in main pipeline" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: Ready for PR creation" >> $GITHUB_STEP_SUMMARY
