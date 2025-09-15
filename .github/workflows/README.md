@@ -3,7 +3,8 @@
 ## 📋 Workflows Disponibles
 
 ### 1. `build-docker.yml` ⚡
-**Build de imagen Docker - Rápido y optimizado**
+
+#### Build de imagen Docker - Rápido y optimizado
 
 - **Trigger**: Push a main, PRs, manual
 - **Tiempo**: 3-5 minutos
@@ -14,14 +15,14 @@
   - ✅ Mínima complejidad
 
 ### 2. `ci-cd-complete.yml` 🏗️
-**Pipeline completo con todas las validaciones**
+
+#### Pipeline completo con todas las validaciones
 
 - **Trigger**: Push a main/develop, releases, manual
 - **Tiempo**: 8-12 minutos
 - **Características**:
   - ✅ Linting y type checking
   - ✅ Security scanning (Trivy)
-
   - ✅ Multi-environment support
   - ✅ Deploy notifications
 
@@ -51,12 +52,14 @@ docker pull ghcr.io/[tu-org]/backstage:main-abc1234
 ## 🔧 Configuración inicial
 
 ### 1. Permisos de GitHub Actions
-```
+
+```text
 Settings → Actions → General → Workflow permissions
 ✅ Read and write permissions
 ```
 
 ### 2. GitHub Container Registry
+
 - Automático con `GITHUB_TOKEN`
 - No requiere configuración adicional
 
@@ -74,7 +77,3 @@ Settings → Actions → General → Workflow permissions
 | Tiempo inicial | 5-7 min | 10-12 min |
 | Con cache | 3-4 min | 8-10 min |
 | Costo/build | ~$0.03 | ~$0.10 |
-
----
-
-**Filosofía**: "Todo en el pipeline, nada en scripts externos"
