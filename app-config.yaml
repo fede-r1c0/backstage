@@ -51,7 +51,7 @@ integrations:
 
 proxy:
   '/argocd/api':
-    target: https://192.168.70.102/api/v1/
+    target: ${ARGOCD_API_URL}
     changeOrigin: true
     # only if your argocd api has self-signed cert
     secure: false
