@@ -1,17 +1,27 @@
-name: build
+name: Build Job
 
 on:
-  push:
-    branches: [main, develop]
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version'
+        required: false
+        type: string
+        default: '20.19.5'
+      registry:
+        description: 'Container registry'
+        required: false
+        type: string
+        default: 'ghcr.io'
 
 env:
-  REGISTRY: ghcr.io
+  REGISTRY: ${{ inputs.registry || 'ghcr.io' }}
   IMAGE_NAME: ${{ github.repository_owner }}/backstage
-  NODE_VERSION: '20.19.5'
+  NODE_VERSION: ${{ inputs.node-version || '20.19.5' }}
 
 jobs:
   build:
+    name: 🏗️ Build
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -108,39 +118,3 @@ jobs:
             NODE_ENV=production
           # Optimización
           provenance: false
-
-      # Output build summary
-      - name: Image Build Summary
-        if: always()
-        run: |
-          echo "## 📦 Build Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Node Version**: ${{ env.NODE_VERSION }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Platforms**: linux/amd64, linux/arm64" >> $GITHUB_STEP_SUMMARY
-          echo "- **Registry**: ${{ env.REGISTRY }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Image**: ${{ env.IMAGE_NAME }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **Image pushed to registry**" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Available tags:" >> $GITHUB_STEP_SUMMARY
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "- \`latest\` (main branch)" >> $GITHUB_STEP_SUMMARY
-            echo "- \`main-${{ github.sha }}\` (branch + commit)" >> $GITHUB_STEP_SUMMARY
-            echo "- \`${{ github.sha }}\` (commit only)" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Pull commands:" >> $GITHUB_STEP_SUMMARY
-            echo '```bash' >> $GITHUB_STEP_SUMMARY
-            echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
-            echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            echo "- \`develop-${{ github.sha }}\` (branch + commit)" >> $GITHUB_STEP_SUMMARY
-            echo "- \`${{ github.sha }}\` (commit only)" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Pull commands:" >> $GITHUB_STEP_SUMMARY
-            echo '```bash' >> $GITHUB_STEP_SUMMARY
-            echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:develop-${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-            echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-          fi

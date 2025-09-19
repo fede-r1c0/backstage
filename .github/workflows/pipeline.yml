@@ -1,0 +1,126 @@
+name: CI/CD Pipeline Centralizado
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  release:
+    types: [created]
+
+env:
+  NODE_VERSION: '20.19.5'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/backstage
+
+jobs:
+  # Job 1: Validación (siempre se ejecuta)
+  validations:
+    uses: ./.github/workflows/validate-job.yml
+    with:
+      node-version: ${{ env.NODE_VERSION }}
+
+  # Job 2: Build (solo para main y develop)
+  build:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    needs: validations
+    uses: ./.github/workflows/build-job.yml
+    with:
+      node-version: ${{ env.NODE_VERSION }}
+      registry: ${{ env.REGISTRY }}
+
+  # Job 3: Security Scan (solo para main y develop)
+  security-scan:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    needs: build
+    uses: ./.github/workflows/security-job.yml
+    with:
+      registry: ${{ env.REGISTRY }}
+
+  # Job Final: Summary
+  pipeline-summary:
+    name: 📊 Pipeline Summary
+    runs-on: ubuntu-24.04
+    needs: [validations, build, security-scan]
+    if: always()
+
+    steps:
+      - name: Generate Dynamic Summary
+        run: |
+          echo "# 📊 CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Determinar tipo de pipeline
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "**Pipeline Type**: 🔍 PR Validation Only" >> $GITHUB_STEP_SUMMARY
+            echo "**PR**: #${{ github.event.number }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Branch**: ${{ github.head_ref }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Target**: ${{ github.base_ref }}" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+              echo "**Pipeline Type**: 🚀 Full Pipeline (Main Branch)" >> $GITHUB_STEP_SUMMARY
+              echo "**Tags**: latest, main-${{ github.sha }}, ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+            elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+              echo "**Pipeline Type**: 🏗️ Full Pipeline (Develop Branch)" >> $GITHUB_STEP_SUMMARY
+              echo "**Tags**: develop-${{ github.sha }}, ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Author**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "## Pipeline Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 Validation | ${{ needs.validations.result }} |" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "| 🏗️ Build | ${{ needs.build.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔐 Security Scan | ${{ needs.security-scan.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| 🏗️ Build | ⏭️ Skipped (PR only)" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔐 Security Scan | ⏭️ Skipped (PR only)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Mostrar comandos de pull solo para push events
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "## 🐳 Container Registry" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Pull Commands" >> $GITHUB_STEP_SUMMARY
+            echo '```bash' >> $GITHUB_STEP_SUMMARY
+            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+              echo "# Latest (main branch)" >> $GITHUB_STEP_SUMMARY
+              echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "# Main + SHA" >> $GITHUB_STEP_SUMMARY
+              echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+            elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+              echo "# Develop + SHA" >> $GITHUB_STEP_SUMMARY
+              echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:develop-${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "# SHA only" >> $GITHUB_STEP_SUMMARY
+            echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "## 🔄 Reused Workflows" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **Validation**: Reused from \`validate-job.yml\`" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "- ✅ **Build**: Reused from \`build-job.yml\`" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ **Security Scan**: Reused from \`security-job.yml\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⏭️ **Build**: Skipped (PR only)" >> $GITHUB_STEP_SUMMARY
+            echo "- ⏭️ **Security Scan**: Skipped (PR only)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Time**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY

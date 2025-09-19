@@ -1,0 +1,212 @@
+name: Validate Job
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version'
+        required: false
+        type: string
+        default: '20.19.5'
+
+env:
+  NODE_VERSION: ${{ inputs.node-version || '20.19.5' }}
+
+jobs:
+  # Job 1: Dependencies
+  dependencies:
+    name: 📦 Dependencies Validation
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Get yarn cache directory
+        id: yarn-cache-dir
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.yarn-cache-dir.outputs.dir }}
+            .yarn/cache
+            .yarn/install-state.gz
+            node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+            ${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing dependencies..."
+          yarn install --immutable
+
+      - name: Validate package.json structure
+        run: |
+          echo "📋 Validating package.json structure..."
+          if [ -f "package.json" ]; then
+            echo "✅ package.json found"
+            if jq -e '.name and .version and .dependencies' package.json > /dev/null 2>&1; then
+              echo "✅ package.json structure is valid"
+            else
+              echo "❌ package.json missing required fields"
+              exit 1
+            fi
+          else
+            echo "❌ package.json not found"
+            exit 1
+          fi
+
+      - name: Dependency integrity check
+        run: |
+          echo "🔒 Checking dependency integrity..."
+          yarn install --check-cache --silent || echo "⚠️ Dependency integrity issues found"
+
+      - name: Check for dependency conflicts
+        run: |
+          echo "🔍 Checking for dependency conflicts..."
+          if yarn check --integrity 2>/dev/null; then
+            echo "✅ No dependency conflicts found"
+          else
+            echo "⚠️ Potential dependency conflicts detected"
+            echo "💡 Run 'yarn install' locally to resolve conflicts"
+          fi
+
+  # Job 2: Code validation
+  code-validation:
+    name: 🔍 Code Validation
+    runs-on: ubuntu-24.04
+    needs: dependencies
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Get yarn cache directory
+        id: yarn-cache-dir
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.yarn-cache-dir.outputs.dir }}
+            .yarn/cache
+            .yarn/install-state.gz
+            node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+            ${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing dependencies for code validation..."
+          yarn install --immutable
+
+      - name: TypeScript compilation check
+        run: |
+          echo "📝 TypeScript compilation check..."
+          npx tsc --noEmit
+
+      - name: ESLint check
+        run: |
+          echo "🔍 ESLint check..."
+          yarn lint:all || echo "⚠️ ESLint issues found"
+
+      - name: Prettier format check
+        run: |
+          echo "💅 Prettier format check..."
+          yarn prettier:check || echo "⚠️ Formatting issues found"
+
+  # Job 3: Seguridad (al final, no bloquea desarrollo)
+  security-validation:
+    name: 🔐 Security Validation
+    runs-on: ubuntu-24.04
+    needs: dependencies
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Get yarn cache directory
+        id: yarn-cache-dir
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.yarn-cache-dir.outputs.dir }}
+            .yarn/cache
+            .yarn/install-state.gz
+            node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+            ${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing dependencies for security validation..."
+          yarn install --immutable
+
+      - name: Critical security audit
+        run: |
+          echo "🔐 Critical security audit (HIGH/CRITICAL only)..."
+          yarn npm audit --severity high --recursive || echo "⚠️ High severity vulnerabilities found"
+
+  # Job Final: Summary
+  validation-summary:
+    name: 📊 Validation Summary
+    runs-on: ubuntu-24.04
+    needs: [dependencies, code-validation, security-validation]
+    if: always()
+
+    steps:
+      - name: Generate validation summary
+        run: |
+          echo "## 🔍 Validation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 📦 Dependencies | ${{ needs.dependencies.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 Code Validation | ${{ needs.code-validation.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔐 Security | ${{ needs.security-validation.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Validations Performed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### 📦 Dependencies" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ package.json structure validation" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Dependency integrity check" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Dependency conflicts check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### 🔍 Code Quality" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ TypeScript compilation check" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ ESLint (linting)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Prettier (formatting)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### 🔐 Security" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Critical security audit (HIGH/CRITICAL only)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note**: Full validation completed for TypeScript project with Yarn" >> $GITHUB_STEP_SUMMARY

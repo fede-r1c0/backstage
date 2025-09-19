@@ -1,12 +1,16 @@
-name: Security Scan
+name: Security Job
 
 on:
-  push:
-    branches: [main, develop]
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      registry:
+        description: 'Container registry'
+        required: false
+        type: string
+        default: 'ghcr.io'
 
 env:
-  REGISTRY: ghcr.io
+  REGISTRY: ${{ inputs.registry || 'ghcr.io' }}
   IMAGE_NAME: ${{ github.repository_owner }}/backstage
 
 jobs:
