@@ -14,18 +14,21 @@ env:
   IMAGE_NAME: ${{ github.repository_owner }}/backstage
 
 jobs:
-  # Job 1: Validación (siempre se ejecuta)
+  # Job 1: Validations
   validations:
+    name: 🔍 Code Quality & Dependencies Validation
     uses: ./.github/workflows/validate-job.yml
 
-  # Job 2: Build (solo para main y develop)
+  # Job 2: Container Build
   build:
+    name: 🏗️ Multi-Arch Container Build
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     needs: validations
     uses: ./.github/workflows/build-job.yml
 
-  # Job 3: Security Scan (solo para main y develop)
+  # Job 3: Security Scan
   security-scan:
+    name: 🔐 Container Security Scan
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     needs: build
     uses: ./.github/workflows/security-job.yml
