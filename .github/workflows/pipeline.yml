@@ -17,25 +17,18 @@ jobs:
   # Job 1: Validación (siempre se ejecuta)
   validations:
     uses: ./.github/workflows/validate-job.yml
-    with:
-      node-version: ${{ env.NODE_VERSION }}
 
   # Job 2: Build (solo para main y develop)
   build:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     needs: validations
     uses: ./.github/workflows/build-job.yml
-    with:
-      node-version: ${{ env.NODE_VERSION }}
-      registry: ${{ env.REGISTRY }}
 
   # Job 3: Security Scan (solo para main y develop)
   security-scan:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     needs: build
     uses: ./.github/workflows/security-job.yml
-    with:
-      registry: ${{ env.REGISTRY }}
 
   # Job Final: Summary
   pipeline-summary:
