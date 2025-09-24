@@ -53,6 +53,6 @@
   },
   "packageManager": "yarn@4.4.1",
   "dependencies": {
-    "@backstage/ui": "^0.7.0"
+    "@backstage/ui": "^0.7.1"
   }
 }
