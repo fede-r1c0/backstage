@@ -8,7 +8,15 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
-      day: 'monday'
+      day: 'wednesday'
+
+  # Enable version updates for Docker
+  - package-ecosystem: 'docker'
+    # Look for a `Dockerfile` in the `root` directory
+    directory: 'packages/backend'
+    # Check for updates once a week
+    schedule:
+      interval: 'weekly'
 
     # Group updates to reduce PR noise
     groups:
