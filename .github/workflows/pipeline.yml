@@ -16,26 +16,26 @@ env:
 jobs:
   # Job 1: Validations
   validations:
-    name: 🔍 Code Quality & Dependencies Validation
+    name: 🔍 Code Quality
     uses: ./.github/workflows/validate-job.yml
 
   # Job 2: Container Build
   build:
-    name: 🏗️ Multi-Arch Container Build
+    name: 🏗️ Build
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     needs: validations
     uses: ./.github/workflows/build-job.yml
 
   # Job 3: Security Scan
   security-scan:
-    name: 🔐 Container Security Scan
+    name: 🔐 Security Scan
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     needs: build
     uses: ./.github/workflows/security-job.yml
 
   # Job Final: Summary
   pipeline-summary:
-    name: 📊 Pipeline Summary
+    name: 📊 Summary
     runs-on: ubuntu-24.04
     needs: [validations, build, security-scan]
     if: always()
@@ -43,7 +43,7 @@ jobs:
     steps:
       - name: Generate Dynamic Summary
         run: |
-          echo "# 📊 CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "# 📊 Pipeline Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           # Determinar tipo de pipeline
