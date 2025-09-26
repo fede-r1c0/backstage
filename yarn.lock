@@ -4843,16 +4843,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-techdocs-module-addons-contrib@npm:^1.1.27":
-  version: 1.1.27
-  resolution: "@backstage/plugin-techdocs-module-addons-contrib@npm:1.1.27"
+"@backstage/plugin-techdocs-module-addons-contrib@npm:^1.1.28":
+  version: 1.1.28
+  resolution: "@backstage/plugin-techdocs-module-addons-contrib@npm:1.1.28"
   dependencies:
-    "@backstage/core-components": "npm:^0.17.5"
-    "@backstage/core-plugin-api": "npm:^1.10.9"
-    "@backstage/frontend-plugin-api": "npm:^0.11.0"
-    "@backstage/integration": "npm:^1.17.1"
-    "@backstage/integration-react": "npm:^1.2.9"
-    "@backstage/plugin-techdocs-react": "npm:^1.3.2"
+    "@backstage/core-components": "npm:^0.18.0"
+    "@backstage/core-plugin-api": "npm:^1.11.0"
+    "@backstage/frontend-plugin-api": "npm:^0.12.0"
+    "@backstage/integration": "npm:^1.18.0"
+    "@backstage/integration-react": "npm:^1.2.10"
+    "@backstage/plugin-techdocs-react": "npm:^1.3.3"
     "@material-ui/core": "npm:^4.12.2"
     "@material-ui/icons": "npm:^4.9.1"
     "@react-hookz/web": "npm:^24.0.0"
@@ -4866,7 +4866,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 10c0/0a85ded879a6b58c216069a294f30dcc2c308f64ac86194979776cbfac1e1d664d493dfc8df34abd853366e66e43cd401ae34f3bfbe713176e8e4304b2cb8290
+  checksum: 10c0/4c77b5930539ceb1285dc7ac3b9e6364167a14153a67e347cffdecacadb39cdfdb83c8385cf198074ca3246f7a26355c5f81c3566493fb27c7c0c7cef58c82d7
   languageName: node
   linkType: hard
 
@@ -15050,7 +15050,7 @@ __metadata:
     "@backstage/plugin-search-react": "npm:^1.9.4"
     "@backstage/plugin-signals": "npm:^0.0.22"
     "@backstage/plugin-techdocs": "npm:^1.15.0"
-    "@backstage/plugin-techdocs-module-addons-contrib": "npm:^1.1.27"
+    "@backstage/plugin-techdocs-module-addons-contrib": "npm:^1.1.28"
     "@backstage/plugin-techdocs-react": "npm:^1.3.2"
     "@backstage/plugin-user-settings": "npm:^0.8.25"
     "@backstage/test-utils": "npm:^1.7.11"
