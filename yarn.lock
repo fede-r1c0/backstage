@@ -4791,17 +4791,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-signals@npm:^0.0.22":
-  version: 0.0.22
-  resolution: "@backstage/plugin-signals@npm:0.0.22"
+"@backstage/plugin-signals@npm:^0.0.23":
+  version: 0.0.23
+  resolution: "@backstage/plugin-signals@npm:0.0.23"
   dependencies:
-    "@backstage/core-compat-api": "npm:^0.5.0"
-    "@backstage/core-components": "npm:^0.17.5"
-    "@backstage/core-plugin-api": "npm:^1.10.9"
-    "@backstage/frontend-plugin-api": "npm:^0.11.0"
+    "@backstage/core-compat-api": "npm:^0.5.2"
+    "@backstage/core-components": "npm:^0.18.0"
+    "@backstage/core-plugin-api": "npm:^1.11.0"
+    "@backstage/frontend-plugin-api": "npm:^0.12.0"
     "@backstage/plugin-signals-react": "npm:^0.0.15"
     "@backstage/theme": "npm:^0.6.8"
-    "@backstage/types": "npm:^1.2.1"
+    "@backstage/types": "npm:^1.2.2"
     "@material-ui/core": "npm:^4.12.4"
     "@material-ui/icons": "npm:^4.9.1"
     "@material-ui/lab": "npm:^4.0.0-alpha.61"
@@ -4815,7 +4815,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 10c0/684e1eb14edf1a4727a2e17696b73a4df534dc5cfbb2f6adc4c48af3599e53f99de406088a8c64126c4330a845286099e4e5430de1f71cc4e8711139045019f4
+  checksum: 10c0/964c94edea3d95fc8ad844f8189f79636057e6c6ff41cc6ebeec87af4e02d5873170d1e949d6bbabb1262e8a480f9801a5898ff5460f30a912432cd99a0057db
   languageName: node
   linkType: hard
 
@@ -15060,7 +15060,7 @@ __metadata:
     "@backstage/plugin-scaffolder": "npm:^1.34.0"
     "@backstage/plugin-search": "npm:^1.4.29"
     "@backstage/plugin-search-react": "npm:^1.9.4"
-    "@backstage/plugin-signals": "npm:^0.0.22"
+    "@backstage/plugin-signals": "npm:^0.0.23"
     "@backstage/plugin-techdocs": "npm:^1.15.0"
     "@backstage/plugin-techdocs-module-addons-contrib": "npm:^1.1.28"
     "@backstage/plugin-techdocs-react": "npm:^1.3.2"
