@@ -2,51 +2,62 @@
 
 ## 📋 Workflows Disponibles
 
-### 1. `build-docker.yml` ⚡
+### 1. `pipeline.yml` 🔄
 
-#### Build de imagen Docker - Rápido y optimizado
+#### Pipeline CI/CD centralizado
 
-- **Trigger**: Push a main, PRs, manual
-- **Tiempo**: 3-5 minutos
+- **Trigger**: Push a main/develop, PRs, tags versionados
+- **Tiempo**: 6-8 minutos
 - **Características**:
-  - ✅ Multi-arch (AMD64 + ARM64)
-  - ✅ Cache optimizado con GitHub Actions
-  - ✅ Push automático a ghcr.io
-  - ✅ Mínima complejidad
+  - ✅ Validación de código (lint, type check, security)
+  - ✅ Build multi-arch (AMD64 + ARM64)
+  - ✅ Security scan con Trivy
+  - ✅ Soporte para tags versionados de Semantic Release
 
-### 2. `ci-cd-complete.yml` 🏗️
+### 2. `release.yml` 📦
 
-#### Pipeline completo con todas las validaciones
+#### Semantic Release - Versionado automático
 
-- **Trigger**: Push a main/develop, releases, manual
-- **Tiempo**: 8-12 minutos
+- **Trigger**: Manual (workflow_dispatch)
+- **Tiempo**: 1-2 minutos
 - **Características**:
-  - ✅ Linting y type checking
-  - ✅ Security scanning (Trivy)
-  - ✅ Multi-environment support
-  - ✅ Deploy notifications
+  - ✅ Versionado automático con Conventional Commits
+  - ✅ Generación de CHANGELOG.md
+  - ✅ Creación de GitHub Releases
+  - ✅ Trigger automático del pipeline para build versionado
+  - ✅ Dry run mode para preview
+
+### 3. Reusable Jobs
+
+#### `validate-job.yml`, `build-job.yml`, `security-job.yml`
+
+- **Tipo**: Reusable workflows
+- **Uso**: Llamados por `pipeline.yml`
+- **Beneficio**: DRY - No repetir código
 
 ## 🎯 Cuándo usar cada uno
 
-| Situación | Workflow Recomendado |
-|-----------|---------------------|
-| Feature branch | `build-docker.yml` |
-| Hotfix rápido | `build-docker.yml` |
-| Pre-release | `ci-cd-complete.yml` |
-| Validación completa | `ci-cd-complete.yml` |
-| Deploy a producción | `ci-cd-complete.yml` |
+| Situación | Workflow | Trigger |
+|-----------|----------|---------|
+| **Feature/PR** | `pipeline.yml` | Automático en push/PR |
+| **Validación completa** | `pipeline.yml` | Automático en push a main/develop |
+| **Crear Release** | `release.yml` | Manual desde Actions UI |
+| **Release automática** | `pipeline.yml` | Automático al crear tag (desde release.yml) |
 
 ## 🐳 Acceso a las imágenes
 
 ```bash
-# Pull última versión
+# Pull última versión (main branch o último release)
 docker pull ghcr.io/[tu-org]/backstage:latest
+
+# Pull versión específica (desde Semantic Release)
+docker pull ghcr.io/[tu-org]/backstage:v1.2.3
+
+# Pull por SHA
+docker pull ghcr.io/[tu-org]/backstage:abc1234
 
 # Pull específico para ARM64 (M1/M2 Mac, Raspberry Pi)
 docker pull ghcr.io/[tu-org]/backstage:latest --platform linux/arm64
-
-# Pull por SHA
-docker pull ghcr.io/[tu-org]/backstage:main-abc1234
 ```
 
 ## 🔧 Configuración inicial

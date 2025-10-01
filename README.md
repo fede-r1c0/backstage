@@ -144,29 +144,29 @@ Our CI/CD pipeline automatically:
 
 ## 🔌 Plugin Ecosystem
 
-### 🎯 Core Backstage Plugins (Incluidos por defecto)
+### 🎯 Core Backstage Plugins (Default)
 
-| Plugin | Propósito | Estado |
+| Plugin | Purpose | Status |
 |--------|-----------|--------|
-| **@backstage/plugin-catalog-backend** | Gestión del catálogo de servicios | ✅ Activo |
-| **@backstage/plugin-scaffolder-backend** | Creación de proyectos desde templates | ✅ Activo |
-| **@backstage/plugin-techdocs-backend** | Documentación técnica | ✅ Activo |
-| **@backstage/plugin-search-backend** | Motor de búsqueda | ✅ Activo |
-| **@backstage/plugin-kubernetes-backend** | Integración con Kubernetes | ✅ Activo |
-| **@backstage/plugin-auth-backend** | Sistema de autenticación | ✅ Activo |
-| **@backstage/plugin-notifications-backend** | Sistema de notificaciones | ✅ Activo |
-| **@backstage/plugin-signals-backend** | Sistema de señales | ✅ Activo |
-| **@backstage/plugin-permission-backend** | Sistema de permisos | ✅ Activo |
-| **@backstage/plugin-proxy-backend** | Proxy para servicios externos | ✅ Activo |
+| **@backstage/plugin-catalog-backend** | Service catalog management | ✅ Active |
+| **@backstage/plugin-scaffolder-backend** | Project creation from templates | ✅ Active |
+| **@backstage/plugin-techdocs-backend** | Technical documentation | ✅ Active |
+| **@backstage/plugin-search-backend** | Search engine | ✅ Active |
+| **@backstage/plugin-kubernetes-backend** | Kubernetes integration | ✅ Active |
+| **@backstage/plugin-auth-backend** | Authentication system | ✅ Active |
+| **@backstage/plugin-notifications-backend** | Notification system | ✅ Active |
+| **@backstage/plugin-signals-backend** | Signals system | ✅ Active |
+| **@backstage/plugin-permission-backend** | Permission system | ✅ Active |
+| **@backstage/plugin-proxy-backend** | Proxy for external services | ✅ Active |
 
-### 🚀 Plugins Externos Integrados
+### 🚀 Integrated External Plugins
 
-| Plugin | Propósito | Configuración | Estado |
+| Plugin | Purpose | Configuration | Status |
 |--------|-----------|---------------|--------|
-| **@roadiehq/backstage-plugin-argo-cd** | Integración con ArgoCD para GitOps | Proxy a `192.168.70.102` | ✅ Activo |
-| **@backstage-community/plugin-github-actions** | Visualización de GitHub Actions | GitHub.com integration | ✅ Activo |
+| **@roadiehq/backstage-plugin-argo-cd** | ArgoCD integration for GitOps | Proxy to `192.168.70.102` | ✅ Active |
+| **@backstage-community/plugin-github-actions** | GitHub Actions visualization | GitHub.com integration | ✅ Active |
 
-### 🔧 Configuración de Integraciones
+### 🔧 Integration Configuration
 
 #### **ArgoCD Integration**
 
@@ -198,19 +198,19 @@ auth:
         clientSecret: ${AUTH_GITHUB_CLIENT_SECRET}
 ```
 
-### 📱 Implementación en EntityPage
+### 📱 EntityPage Implementation
 
 #### **ArgoCD Card**
 
-- Se muestra en Overview si está disponible
-- Integrado con `EntityArgoCDOverviewCard`
-- Condicionado por `isArgocdAvailable()`
+- Displayed in Overview when available
+- Integrated with `EntityArgoCDOverviewCard`
+- Conditional on `isArgocdAvailable()`
 
 #### **GitHub Actions Tab**
 
-- Tab dedicado `/github-actions`
-- Integrado con `EntityGithubActionsContent`
-- Condicionado por `isGithubActionsAvailable()`
+- Dedicated tab at `/github-actions`
+- Integrated with `EntityGithubActionsContent`
+- Conditional on `isGithubActionsAvailable()`
 
 ## 🧪 Testing
 
