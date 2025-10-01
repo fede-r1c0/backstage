@@ -4,10 +4,10 @@ on:
   workflow_call:
     inputs:
       node-version:
-        description: 'Node.js version'
+        description: "Node.js version"
         required: false
         type: string
-        default: '20.19.5'
+        default: "20.19.5"
 
 env:
   NODE_VERSION: ${{ inputs.node-version || '20.19.5' }}
@@ -125,7 +125,7 @@ jobs:
       - name: TypeScript compilation check
         run: |
           echo "📝 TypeScript compilation check..."
-          npx tsc --noEmit
+          yarn tsc
 
       - name: ESLint check
         run: |
