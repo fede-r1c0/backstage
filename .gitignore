@@ -194,6 +194,10 @@ temp/
 # Local configuration files
 *.local.yaml
 
+# Semantic Release temporary files
+.version
+*.bak
+
 # vscode database functionality support files
 *.session.sql
 

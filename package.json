@@ -33,8 +33,16 @@
     "@backstage/cli": "^0.34.1",
     "@backstage/e2e-test-utils": "^0.1.1",
     "@playwright/test": "^1.32.3",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.0",
+    "@semantic-release/exec": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.0",
+    "@semantic-release/release-notes-generator": "^14.0.1",
+    "conventional-changelog-conventionalcommits": "^8.0.0",
     "node-gyp": "^11.4.2",
     "prettier": "^2.3.2",
+    "semantic-release": "^24.2.0",
     "typescript": "~5.9.2"
   },
   "resolutions": {
