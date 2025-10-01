@@ -4,10 +4,14 @@ on:
   workflow_call:
     inputs:
       registry:
-        description: 'Container registry'
+        description: "Container registry"
         required: false
         type: string
-        default: 'ghcr.io'
+        default: "ghcr.io"
+      image-digest:
+        description: "Docker image digest to scan (immutable reference)"
+        required: true
+        type: string
 
 env:
   REGISTRY: ${{ inputs.registry || 'ghcr.io' }}
@@ -27,43 +31,95 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # Solo necesitamos el código para el upload SARIF
           fetch-depth: 1
 
+      # Escanear imagen usando digest (inmutable y preciso)
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          # Usar tag 'latest' que sabemos que existe
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          scan-type: 'image'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'MEDIUM,HIGH,CRITICAL'
-          # Solo vulnerabilidades, no secrets (más rápido)
-          scanners: 'vuln'
-          # Optimizaciones para velocidad
-          skip-dirs: 'node_modules,dist,build'
-          timeout: '10m'
-          cache-dir: /tmp/trivy-cache
+          # ✅ Usar digest en lugar de tag para escanear la imagen exacta
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ inputs.image-digest }}
+          scan-type: "image"
+          format: "sarif"
+          output: "trivy-results.sarif"
+          severity: "MEDIUM,HIGH,CRITICAL"
+          # Escanear vulnerabilidades y configuración
+          scanners: "vuln,config"
+          # Optimizaciones
+          skip-dirs: "node_modules,dist,build"
+          timeout: "10m"
 
       - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: "trivy-results.sarif"
 
-      - name: Security scan summary
+      # Generar reporte JSON adicional para análisis
+      - name: Run Trivy for JSON report
+        uses: aquasecurity/trivy-action@master
+        if: always()
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ inputs.image-digest }}
+          scan-type: "image"
+          format: "json"
+          output: "trivy-results.json"
+          severity: "MEDIUM,HIGH,CRITICAL"
+          scanners: "vuln,config"
+
+      - name: Parse and summarize vulnerabilities
         if: always()
         run: |
           echo "## 🔐 Security Scan Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Image**: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "**Image**: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Digest**: \`${{ inputs.image-digest }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Scan Details" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Image scanned for CVEs using Trivy" >> $GITHUB_STEP_SUMMARY
+
+          # Parsear resultados si existe el JSON
+          if [ -f trivy-results.json ]; then
+            CRITICAL=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-results.json 2>/dev/null || echo "0")
+            HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-results.json 2>/dev/null || echo "0")
+            MEDIUM=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="MEDIUM")] | length' trivy-results.json 2>/dev/null || echo "0")
+
+            echo "### 📊 Vulnerability Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔴 CRITICAL | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🟠 HIGH | $HIGH |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🟡 MEDIUM | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            if [ "$CRITICAL" -gt 0 ] || [ "$HIGH" -gt 0 ]; then
+              echo "### ⚠️ Action Required" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "Critical or High severity vulnerabilities detected!" >> $GITHUB_STEP_SUMMARY
+              echo "Check the **Security** tab for detailed reports." >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "### ✅ No Critical/High Vulnerabilities" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+          echo "### 🔍 Scan Details" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Image scanned using digest (immutable)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Vulnerability scan (CVEs)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Configuration scan (best practices)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Results uploaded to Security tab" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Severity levels: MEDIUM, HIGH, CRITICAL" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Note**: Check the Security tab for detailed vulnerability reports" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Resources" >> $GITHUB_STEP_SUMMARY
+          echo "- [Security Tab](https://github.com/${{ github.repository }}/security)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Trivy Documentation](https://aquasecurity.github.io/trivy/)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Trivy JSON report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-scan-results-${{ github.sha }}
+          path: trivy-results.json
+          retention-days: 30
