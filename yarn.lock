@@ -3861,19 +3861,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-notifications@npm:^0.5.8":
-  version: 0.5.8
-  resolution: "@backstage/plugin-notifications@npm:0.5.8"
+"@backstage/plugin-notifications@npm:^0.5.9":
+  version: 0.5.9
+  resolution: "@backstage/plugin-notifications@npm:0.5.9"
   dependencies:
-    "@backstage/core-compat-api": "npm:^0.5.0"
-    "@backstage/core-components": "npm:^0.17.5"
-    "@backstage/core-plugin-api": "npm:^1.10.9"
+    "@backstage/core-compat-api": "npm:^0.5.2"
+    "@backstage/core-components": "npm:^0.18.0"
+    "@backstage/core-plugin-api": "npm:^1.11.0"
     "@backstage/errors": "npm:^1.2.7"
-    "@backstage/frontend-plugin-api": "npm:^0.11.0"
+    "@backstage/frontend-plugin-api": "npm:^0.12.0"
     "@backstage/plugin-notifications-common": "npm:^0.1.0"
     "@backstage/plugin-signals-react": "npm:^0.0.15"
     "@backstage/theme": "npm:^0.6.8"
-    "@backstage/types": "npm:^1.2.1"
+    "@backstage/types": "npm:^1.2.2"
     "@material-ui/core": "npm:^4.9.13"
     "@material-ui/icons": "npm:^4.9.1"
     "@material-ui/lab": "npm:^4.0.0-alpha.61"
@@ -3890,7 +3890,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 10c0/d3379fa8020b57ba7cfd77eb4ae81ee346ae96f32ab40699fa345ba60420f30c0082dbea054698036763b7956be4401dcde88a3e7ec7d4a8fc6042118d1bbe55
+  checksum: 10c0/bdc7388bd879b70aa91a922268d1a68aad7f9914d2c0851eba79e72e7681bc4dd24df19c194cc7cceeed00ee08d5feeb512e19ce84f5eb4593ae5e0a007c66c7
   languageName: node
   linkType: hard
 
@@ -15054,7 +15054,7 @@ __metadata:
     "@backstage/plugin-catalog-import": "npm:^0.13.4"
     "@backstage/plugin-catalog-react": "npm:^1.21.0"
     "@backstage/plugin-kubernetes": "npm:^0.12.10"
-    "@backstage/plugin-notifications": "npm:^0.5.8"
+    "@backstage/plugin-notifications": "npm:^0.5.9"
     "@backstage/plugin-org": "npm:^0.6.42"
     "@backstage/plugin-permission-react": "npm:^0.4.36"
     "@backstage/plugin-scaffolder": "npm:^1.34.0"
