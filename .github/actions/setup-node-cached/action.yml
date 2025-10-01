@@ -1,0 +1,20 @@
+name: 'Setup Node.js with Cache'
+description: 'Setup Node.js, restore Yarn cache, and install dependencies'
+inputs:
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '20.19.5'
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'yarn'
+
+    - name: Install dependencies
+      run: yarn install --immutable
+      shell: bash
+
