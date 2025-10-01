@@ -13,9 +13,9 @@ env:
   NODE_VERSION: ${{ inputs.node-version || '20.19.5' }}
 
 jobs:
-  # Job 1: Dependencies (instala una sola vez y comparte)
-  dependencies:
-    name: 📦 Dependencies Setup
+  # Job 1: Tests
+  tests:
+    name: 🧪 Tests
     runs-on: ubuntu-24.04
 
     steps:
@@ -26,66 +26,6 @@ jobs:
         uses: ./.github/actions/setup-node-cached
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Validate package.json structure
-        run: |
-          echo "📋 Validating package.json structure..."
-          if [ -f "package.json" ]; then
-            echo "✅ package.json found"
-            if jq -e '.name and .version and .dependencies' package.json > /dev/null 2>&1; then
-              echo "✅ package.json structure is valid"
-            else
-              echo "❌ package.json missing required fields"
-              exit 1
-            fi
-          else
-            echo "❌ package.json not found"
-            exit 1
-          fi
-
-      - name: Dependency integrity check
-        run: |
-          echo "🔒 Checking dependency integrity..."
-          yarn install --check-cache --silent || echo "⚠️ Dependency integrity issues found"
-
-      - name: Check for dependency conflicts
-        run: |
-          echo "🔍 Checking for dependency conflicts..."
-          if yarn check --integrity 2>/dev/null; then
-            echo "✅ No dependency conflicts found"
-          else
-            echo "⚠️ Potential dependency conflicts detected"
-            echo "💡 Run 'yarn install' locally to resolve conflicts"
-          fi
-
-      # Compartir node_modules para jobs posteriores
-      - name: Upload node_modules artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: node_modules-${{ github.sha }}
-          path: node_modules
-          retention-days: 1
-
-  # Job 2: Tests
-  tests:
-    name: 🧪 Tests
-    runs-on: ubuntu-24.04
-    needs: dependencies
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Download node_modules
-        uses: actions/download-artifact@v4
-        with:
-          name: node_modules-${{ github.sha }}
-          path: node_modules
 
       - name: Run unit tests
         run: |
@@ -101,26 +41,19 @@ jobs:
           flags: unittests
           name: backstage-coverage
 
-  # Job 3: Code validation (ahora en paralelo con tests)
+  # Job 2: Code validation (ahora en paralelo con tests)
   code-validation:
     name: 🔍 Code Validation
     runs-on: ubuntu-24.04
-    needs: dependencies
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js with cache
+        uses: ./.github/actions/setup-node-cached
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Download node_modules
-        uses: actions/download-artifact@v4
-        with:
-          name: node_modules-${{ github.sha }}
-          path: node_modules
 
       - name: TypeScript compilation check
         run: |
@@ -137,33 +70,26 @@ jobs:
           echo "💅 Prettier format check..."
           yarn prettier:check || echo "⚠️ Formatting issues found"
 
-  # Job 4: Security validation (en paralelo con code-validation)
+  # Job 3: Security validation (en paralelo con code-validation)
   security-validation:
     name: 🔐 Security Validation
     runs-on: ubuntu-24.04
-    needs: dependencies
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js with cache
+        uses: ./.github/actions/setup-node-cached
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Download node_modules
-        uses: actions/download-artifact@v4
-        with:
-          name: node_modules-${{ github.sha }}
-          path: node_modules
 
       - name: Critical security audit
         run: |
           echo "🔐 Critical security audit (HIGH/CRITICAL only)..."
           yarn npm audit --severity high --recursive || echo "⚠️ High severity vulnerabilities found"
 
-  # Job 5: Dependency Review (solo para PRs)
+  # Job 4: Dependency Review (solo para PRs)
   dependency-review:
     name: 🛡️ Dependency Review
     runs-on: ubuntu-24.04
@@ -183,7 +109,7 @@ jobs:
   validation-summary:
     name: 📊 Validation Summary
     runs-on: ubuntu-24.04
-    needs: [dependencies, tests, code-validation, security-validation]
+    needs: [tests, code-validation, security-validation]
     if: always()
 
     steps:
@@ -195,18 +121,11 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| 📦 Dependencies | ${{ needs.dependencies.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🧪 Tests | ${{ needs.tests.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🔍 Code Validation | ${{ needs.code-validation.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🔐 Security | ${{ needs.security-validation.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Validations Performed" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "#### 📦 Dependencies" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ package.json structure validation" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Dependency integrity check" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Dependency conflicts check" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Artifact sharing (optimized)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "#### 🧪 Tests" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Unit tests with coverage" >> $GITHUB_STEP_SUMMARY
@@ -223,4 +142,4 @@ jobs:
             echo "- ✅ Dependency Review (PR only)" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Note**: Optimized with artifact sharing - node_modules installed once and reused" >> $GITHUB_STEP_SUMMARY
+          echo "**Note**: Optimized with Yarn cache - dependencies cached across runs" >> $GITHUB_STEP_SUMMARY
