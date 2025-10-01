@@ -22,14 +22,16 @@
 
 #### Semantic Release - Versionado automático
 
-- **Trigger**: Manual (workflow_dispatch)
+- **Trigger**: Automático en push a main/develop + Manual (workflow_dispatch)
 - **Tiempo**: 1-2 minutos
 - **Características**:
   - ✅ Versionado automático con Conventional Commits
+  - ✅ Releases estables desde main (v1.2.3)
+  - ✅ Pre-releases desde develop (v1.2.3-develop.1)
   - ✅ Generación de CHANGELOG.md
   - ✅ Creación de GitHub Releases
   - ✅ Trigger automático del pipeline para build versionado
-  - ✅ Dry run mode para preview
+  - ✅ Dry run mode para preview (manual)
 
 ### 3. Reusable Jobs
 
@@ -66,9 +68,9 @@
 | Situación | Workflow | Trigger |
 |-----------|----------|---------|
 | **Feature/PR** | `pipeline.yml` | Automático en push/PR |
-| **Validación completa** | `pipeline.yml` | Automático en push a main/develop |
-| **Crear Release** | `release.yml` | Manual desde Actions UI |
-| **Release automática** | `pipeline.yml` | Automático al crear tag (desde release.yml) |
+| **Push a main** | `release.yml` → `pipeline.yml` | Automático: Release estable + Build |
+| **Push a develop** | `release.yml` → `pipeline.yml` | Automático: Pre-release + Build |
+| **Dry-run preview** | `release.yml` | Manual desde Actions UI |
 
 ## 🐳 Acceso a las imágenes
 

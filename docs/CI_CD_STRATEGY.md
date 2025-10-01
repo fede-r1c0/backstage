@@ -184,15 +184,17 @@ graph TD
 
 ### Release Pipeline: `release.yml`
 
-**Trigger**: Manual (workflow_dispatch)
+**Trigger**: Automatic on push to main/develop + Manual (workflow_dispatch)
 
 **Duration**: 1-2 minutes
 
 **Features**:
-- Semantic versioning with Conventional Commits
+- Automatic semantic versioning with Conventional Commits
+- Stable releases from main (v1.2.3)
+- Pre-releases from develop (v1.2.3-develop.1)
 - CHANGELOG.md generation
 - GitHub Release creation
-- Dry-run mode for preview
+- Dry-run mode for preview (manual only)
 - Triggers main pipeline for versioned build
 
 ---
@@ -355,23 +357,26 @@ git push origin feat/my-feature
 # → Creates PR → Validations run (tests, linting, security)
 # → Build/security skipped (faster feedback)
 
-# 2. Merge to develop (full pipeline)
+# 2. Merge to develop (automatic pre-release)
 gh pr merge --merge
+# → Semantic-release analyzes commits automatically
+# → Creates pre-release: v1.2.3-develop.1
 # → Full pipeline: validations + build + security scan
-# → Image: ghcr.io/owner/backstage:develop-{sha}
+# → Images: ghcr.io/owner/backstage:develop-{sha}, v1.2.3-develop.1
 
-# 3. Merge to main (production)
+# 3. Merge to main (automatic production release)
 git checkout main && git pull
 git merge develop
 git push
+# → Semantic-release analyzes commits automatically
+# → Creates stable release: v1.2.3
 # → Full pipeline with 'latest' tag
-# → Image: ghcr.io/owner/backstage:latest
+# → Images: ghcr.io/owner/backstage:latest, v1.2.3, v1.2, v1
 
-# 4. Create release (semantic versioning)
-gh workflow run release.yml
-# → Analyzes commits → Creates v1.2.3 tag
-# → Builds versioned image
-# → Image: ghcr.io/owner/backstage:v1.2.3
+# 4. Manual dry-run (preview only)
+gh workflow run release.yml -f dry_run=true
+# → Shows what would happen without creating release
+# → Useful for testing and verification
 ```
 
 ### Pull Images

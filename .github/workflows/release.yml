@@ -1,6 +1,10 @@
 name: 🚀 Semantic Release
 
 on:
+  # Automático en push a main y develop
+  push:
+    branches: [main, develop]
+  # Manual para dry-run y casos especiales
   workflow_dispatch:
     inputs:
       dry_run:
@@ -61,15 +65,26 @@ jobs:
           echo "# 🚀 Semantic Release Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
-            echo "**Mode**: 🔍 Dry Run (Preview only)" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+              echo "**Mode**: 🔍 Dry Run (Preview only)" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "**Mode**: 🚀 Manual Live Release" >> $GITHUB_STEP_SUMMARY
+            fi
           else
-            echo "**Mode**: 🚀 Live Release" >> $GITHUB_STEP_SUMMARY
+            echo "**Mode**: 🤖 Automatic Release" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "**Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Triggered by**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "**Release Type**: 🏷️ Stable Release (v1.2.3)" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ github.ref_name }}" == "develop" ]]; then
+            echo "**Release Type**: 🧪 Pre-release (v1.2.3-develop.1)" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "" >> $GITHUB_STEP_SUMMARY
 
           # Si existe el archivo .version, mostrar la nueva versión
