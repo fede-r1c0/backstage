@@ -1,9 +1,8 @@
-name: 🚀 Semantic Release
+name: 🚀 Semantic Release Job
 
 on:
-  # Automático en push a main y develop
-  push:
-    branches: [main, develop]
+  # Reusable workflow para ser llamado desde pipeline.yml
+  workflow_call:
   # Manual para dry-run y casos especiales
   workflow_dispatch:
     inputs:
@@ -51,7 +50,7 @@ jobs:
           GIT_COMMITTER_NAME: github-actions[bot]
           GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
         run: |
-          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.dry_run }}" == "true" ]]; then
             echo "🔍 Running in DRY RUN mode - No changes will be made"
             npx semantic-release --dry-run
           else
@@ -79,7 +78,7 @@ jobs:
           echo "**Triggered by**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [[ "${{ github.ref_name }}" == "main" ]]; then
             echo "**Release Type**: 🏷️ Stable Release (v1.2.3)" >> $GITHUB_STEP_SUMMARY
           elif [[ "${{ github.ref_name }}" == "develop" ]]; then
@@ -111,4 +110,3 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "**Time**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
-
