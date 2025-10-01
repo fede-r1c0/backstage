@@ -3894,17 +3894,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-org@npm:^0.6.42":
-  version: 0.6.43
-  resolution: "@backstage/plugin-org@npm:0.6.43"
+"@backstage/plugin-org@npm:^0.6.44":
+  version: 0.6.44
+  resolution: "@backstage/plugin-org@npm:0.6.44"
   dependencies:
     "@backstage/catalog-model": "npm:^1.7.5"
-    "@backstage/core-compat-api": "npm:^0.5.1"
-    "@backstage/core-components": "npm:^0.17.5"
-    "@backstage/core-plugin-api": "npm:^1.10.9"
-    "@backstage/frontend-plugin-api": "npm:^0.11.0"
+    "@backstage/core-compat-api": "npm:^0.5.2"
+    "@backstage/core-components": "npm:^0.18.0"
+    "@backstage/core-plugin-api": "npm:^1.11.0"
+    "@backstage/frontend-plugin-api": "npm:^0.12.0"
     "@backstage/plugin-catalog-common": "npm:^1.1.5"
-    "@backstage/plugin-catalog-react": "npm:^1.20.1"
+    "@backstage/plugin-catalog-react": "npm:^1.21.0"
     "@material-ui/core": "npm:^4.12.2"
     "@material-ui/icons": "npm:^4.9.1"
     "@material-ui/lab": "npm:4.0.0-alpha.61"
@@ -3921,7 +3921,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 10c0/59d97f11aa6f521094842077c222ad750ba7332a7258ecc86e3012ba89777febee0f41a753c7d7e53edd884239c3721256415277addf2d99646f1436ee1a6160
+  checksum: 10c0/effdf0a3096c62969b32846e5c1dcf3f47e92fbc38cc6e6b64d3ef9fd86b25f632d5c8aa5f7cd3ddb5fb6b2bdfc05166f8e653f38a5f59bdeffcc6660b77eb0d
   languageName: node
   linkType: hard
 
@@ -15055,7 +15055,7 @@ __metadata:
     "@backstage/plugin-catalog-react": "npm:^1.21.0"
     "@backstage/plugin-kubernetes": "npm:^0.12.10"
     "@backstage/plugin-notifications": "npm:^0.5.9"
-    "@backstage/plugin-org": "npm:^0.6.42"
+    "@backstage/plugin-org": "npm:^0.6.44"
     "@backstage/plugin-permission-react": "npm:^0.4.36"
     "@backstage/plugin-scaffolder": "npm:^1.34.0"
     "@backstage/plugin-search": "npm:^1.4.29"
