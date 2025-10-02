@@ -1,3 +1,13 @@
+## [1.1.0](https://github.com/fede-r1c0/backstage/compare/v1.0.1...v1.1.0) (2025-10-02)
+
+### ⚠ BREAKING CHANGES
+
+* **ci:** none
+
+### ✨ Features
+
+* **ci:** pass semantic-release version to Docker build for immediate tagging ([4d283ee](https://github.com/fede-r1c0/backstage/commit/4d283ee7fce5bb327fa0b3cfa01f5e87d24c46b4))
+
 ## [1.0.1](https://github.com/fede-r1c0/backstage/compare/v1.0.0...v1.0.1) (2025-10-02)
 
 ### ⚠ BREAKING CHANGES
