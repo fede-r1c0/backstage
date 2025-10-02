@@ -1,3 +1,13 @@
+## [1.0.1](https://github.com/fede-r1c0/backstage/compare/v1.0.0...v1.0.1) (2025-10-02)
+
+### ⚠ BREAKING CHANGES
+
+* **ci:** none
+
+### ♻️ Refactors
+
+* **ci:** simplify Docker image tagging strategy ([da69f3f](https://github.com/fede-r1c0/backstage/commit/da69f3ff1f38379af818803694ea74f6ca1d76bc))
+
 ## 1.0.0 (2025-10-01)
 
 ### ⚠ BREAKING CHANGES
