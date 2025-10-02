@@ -72,10 +72,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            # Tags por branch (main-abc123, develop-abc123)
-            type=ref,event=branch,suffix=-{{sha}}
-            # Tag por SHA siempre
-            type=sha,format=long
+            type=sha,format=short,prefix=
           labels: |
             org.opencontainers.image.title=Backstage
             org.opencontainers.image.description=Backstage Service Catalog
@@ -120,16 +117,21 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🐳 Pull Commands" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          echo "# By digest (immutable)" >> $GITHUB_STEP_SUMMARY
+          echo "# By digest (immutable, most secure)" >> $GITHUB_STEP_SUMMARY
           echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "# By tag (mutable)" >> $GITHUB_STEP_SUMMARY
           if [[ "${{ github.ref }}" == "refs/heads/main" ]] || [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "# By latest tag" >> $GITHUB_STEP_SUMMARY
             echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
           fi
           if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "# By version tag" >> $GITHUB_STEP_SUMMARY
             echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
           fi
+          echo "# By short SHA (7 chars)" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### ✅ Features" >> $GITHUB_STEP_SUMMARY
@@ -137,4 +139,5 @@ jobs:
           echo "- ✅ Provenance attestation (SLSA)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ SBOM (Software Bill of Materials)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ BuildKit cache optimization" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Smart tagging (short SHA)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ OCI compliant labels" >> $GITHUB_STEP_SUMMARY
