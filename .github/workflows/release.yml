@@ -3,6 +3,13 @@ name: 🚀 Semantic Release Job
 on:
   # Reusable workflow para ser llamado desde pipeline.yml
   workflow_call:
+    outputs:
+      new-release-published:
+        description: "Whether a new release was published"
+        value: ${{ jobs.release.outputs.new-release-published }}
+      new-release-version:
+        description: "Version of the new release"
+        value: ${{ jobs.release.outputs.new-release-version }}
   # Manual para dry-run y casos especiales
   workflow_dispatch:
     inputs:
@@ -24,6 +31,9 @@ jobs:
   release:
     name: 📦 Create Release
     runs-on: ubuntu-24.04
+    outputs:
+      new-release-published: ${{ steps.semantic.outputs.new_release_published }}
+      new-release-version: ${{ steps.semantic.outputs.new_release_version }}
 
     steps:
       - name: 📥 Checkout
@@ -43,6 +53,7 @@ jobs:
           yarn install --immutable
 
       - name: 🚀 Run Semantic Release
+        id: semantic
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GIT_AUTHOR_NAME: github-actions[bot]

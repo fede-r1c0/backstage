@@ -13,6 +13,11 @@ on:
         required: false
         type: string
         default: "ghcr.io"
+      release-version:
+        description: "Release version from semantic-release (e.g., 1.0.1)"
+        required: false
+        type: string
+        default: ""
     outputs:
       image-digest:
         description: "Docker image digest"
@@ -68,10 +73,15 @@ jobs:
             # Tag 'latest' solo en main o tags versionados
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
-            # Tags versionados desde semantic-release (v1.2.3)
+            type=raw,value=latest,enable=${{ inputs.release-version != '' }}
+            # Tags versionados desde semantic-release (cuando se pasa como input)
+            type=raw,value=v${{ inputs.release-version }},enable=${{ inputs.release-version != '' }}
+            type=raw,value=${{ inputs.release-version }},enable=${{ inputs.release-version != '' }}
+            # Tags versionados desde git tags (cuando pipeline es triggereado por tag)
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
+            # Tag por SHA corto (7 caracteres)
             type=sha,format=short,prefix=
           labels: |
             org.opencontainers.image.title=Backstage

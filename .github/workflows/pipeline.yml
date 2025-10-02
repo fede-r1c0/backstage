@@ -40,6 +40,8 @@ jobs:
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/tags/v'))
     needs: [validations, semantic-release]
     uses: ./.github/workflows/build-job.yml
+    with:
+      release-version: ${{ needs.semantic-release.outputs.new-release-version }}
 
   # Job 4: Security Scan (ahora recibe el digest del build)
   security-scan:
