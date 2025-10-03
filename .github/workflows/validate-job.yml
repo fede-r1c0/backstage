@@ -19,20 +19,20 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - name: Checkout repository
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js with cache
+      - name: 🔧 Setup Node.js with Yarn Cache
         uses: ./.github/actions/setup-node-cached
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Run unit tests
+      - name: 🧪 Run Unit Tests with Coverage
         run: |
           echo "🧪 Running unit tests..."
           yarn test:all --coverage || echo "⚠️ Some tests failed"
 
-      - name: Upload coverage reports
+      - name: 📊 Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
         if: always()
         continue-on-error: true
@@ -41,65 +41,65 @@ jobs:
           flags: unittests
           name: backstage-coverage
 
-  # Job 2: Code validation (ahora en paralelo con tests)
+  # Job 2: Code validation (now in parallel with tests)
   code-validation:
     name: 🔍 Code Validation
     runs-on: ubuntu-24.04
 
     steps:
-      - name: Checkout repository
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js with cache
+      - name: 🔧 Setup Node.js with Yarn Cache
         uses: ./.github/actions/setup-node-cached
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: TypeScript compilation check
+      - name: 📝 TypeScript Compilation Check
         run: |
           echo "📝 TypeScript compilation check..."
           yarn tsc
 
-      - name: ESLint check
+      - name: 🔍 ESLint Analysis
         run: |
           echo "🔍 ESLint check..."
           yarn lint:all || echo "⚠️ ESLint issues found"
 
-      - name: Prettier format check
+      - name: 💅 Prettier Format Check
         run: |
           echo "💅 Prettier format check..."
           yarn prettier:check || echo "⚠️ Formatting issues found"
 
-  # Job 3: Security validation (en paralelo con code-validation)
+  # Job 3: Security validation (in parallel with code-validation)
   security-validation:
     name: 🔐 Security Validation
     runs-on: ubuntu-24.04
 
     steps:
-      - name: Checkout repository
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js with cache
+      - name: 🔧 Setup Node.js with Yarn Cache
         uses: ./.github/actions/setup-node-cached
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Critical security audit
+      - name: 🔐 NPM Security Audit (HIGH/CRITICAL)
         run: |
           echo "🔐 Critical security audit (HIGH/CRITICAL only)..."
           yarn npm audit --severity high --recursive || echo "⚠️ High severity vulnerabilities found"
 
-  # Job 4: Dependency Review (solo para PRs)
+  # Job 4: Dependency Review (PRs only)
   dependency-review:
     name: 🛡️ Dependency Review
     runs-on: ubuntu-24.04
     if: github.event_name == 'pull_request'
 
     steps:
-      - name: Checkout repository
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Dependency Review
+      - name: 🛡️ Dependency Review (License & Security)
         uses: actions/dependency-review-action@v4
         with:
           fail-on-severity: high
@@ -113,7 +113,7 @@ jobs:
     if: always()
 
     steps:
-      - name: Generate validation summary
+      - name: 📊 Generate Validation Summary
         run: |
           echo "## 🔍 Validation Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
