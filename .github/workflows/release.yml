@@ -1,7 +1,7 @@
 name: 🚀 Semantic Release Job
 
 on:
-  # Reusable workflow para ser llamado desde pipeline.yml
+  # Reusable workflow to be called from pipeline.yml
   workflow_call:
     outputs:
       new-release-published:
@@ -10,7 +10,7 @@ on:
       new-release-version:
         description: "Version of the new release"
         value: ${{ jobs.release.outputs.new-release-version }}
-  # Manual para dry-run y casos especiales
+  # Manual trigger for dry-run and special cases
   workflow_dispatch:
     inputs:
       dry_run:
@@ -20,9 +20,9 @@ on:
         default: false
 
 permissions:
-  contents: write # Para crear tags y commits
-  issues: write # Para comentar en issues cerrados
-  pull-requests: write # Para comentar en PRs
+  contents: write # To create tags and commits
+  issues: write # To comment on closed issues
+  pull-requests: write # To comment on PRs
 
 env:
   NODE_VERSION: "20.19.5"
@@ -36,23 +36,23 @@ jobs:
       new-release-version: ${{ steps.semantic.outputs.new_release_version }}
 
     steps:
-      - name: 📥 Checkout
+      - name: 📥 Checkout Repository (Full History)
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Necesario para semantic-release
+          fetch-depth: 0 # Required for semantic-release
           persist-credentials: false
 
-      - name: 🔧 Setup Node.js
+      - name: 🔧 Setup Node.js with Yarn Cache
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "yarn"
 
-      - name: 📦 Install dependencies
+      - name: 📦 Install Dependencies
         run: |
           yarn install --immutable
 
-      - name: 🚀 Run Semantic Release
+      - name: 🚀 Run Semantic Release Analysis
         id: semantic
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -68,8 +68,8 @@ jobs:
             echo "🚀 Running LIVE release"
             npx semantic-release
           fi
-          
-          # Capturar outputs de semantic-release
+
+          # Capture semantic-release outputs
           if [[ -f .version ]]; then
             VERSION=$(cat .version)
             echo "new-release-published=true" >> $GITHUB_OUTPUT
@@ -81,7 +81,7 @@ jobs:
             echo "ℹ️ No new release created"
           fi
 
-      - name: 📊 Generate Summary
+      - name: 📊 Generate Release Summary
         if: always()
         run: |
           echo "# 🚀 Semantic Release Summary" >> $GITHUB_STEP_SUMMARY
@@ -109,7 +109,7 @@ jobs:
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Si existe el archivo .version, mostrar la nueva versión
+          # If .version file exists, show the new version
           if [[ -f .version ]]; then
             NEW_VERSION=$(cat .version)
             echo "## ✅ Release Created" >> $GITHUB_STEP_SUMMARY
