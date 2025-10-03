@@ -68,6 +68,18 @@ jobs:
             echo "🚀 Running LIVE release"
             npx semantic-release
           fi
+          
+          # Capturar outputs de semantic-release
+          if [[ -f .version ]]; then
+            VERSION=$(cat .version)
+            echo "new-release-published=true" >> $GITHUB_OUTPUT
+            echo "new-release-version=${VERSION}" >> $GITHUB_OUTPUT
+            echo "✅ New release: ${VERSION}"
+          else
+            echo "new-release-published=false" >> $GITHUB_OUTPUT
+            echo "new-release-version=" >> $GITHUB_OUTPUT
+            echo "ℹ️ No new release created"
+          fi
 
       - name: 📊 Generate Summary
         if: always()
