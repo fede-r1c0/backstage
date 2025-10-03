@@ -1,3 +1,9 @@
+## [1.2.1](https://github.com/fede-r1c0/backstage/compare/v1.2.0...v1.2.1) (2025-10-03)
+
+### 🐛 Bug Fixes
+
+* **ci:** ensure Docker images are tagged with semantic release versions ([1eaa520](https://github.com/fede-r1c0/backstage/commit/1eaa520191396f82cfe1c1314f90773e53fadee1))
+
 ## [1.2.0](https://github.com/fede-r1c0/backstage/compare/v1.1.0...v1.2.0) (2025-10-03)
 
 ### ✨ Features
