@@ -41,7 +41,8 @@ jobs:
     needs: [validations, semantic-release]
     uses: ./.github/workflows/build-job.yml
     with:
-      release-version: ${{ needs.semantic-release.outputs.new-release-version }}
+      # Pass version from semantic-release OR extract from git tag
+      release-version: ${{ needs.semantic-release.outputs.new-release-version || (startsWith(github.ref, 'refs/tags/v') && github.ref_name) || '' }}
 
   # Job 4: Security Scan (now receives the digest from build)
   security-scan:

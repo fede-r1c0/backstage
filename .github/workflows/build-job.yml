@@ -73,12 +73,15 @@ jobs:
             # Tag 'latest' only on main or versioned tags
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
-            type=raw,value=latest,enable=${{ inputs.release-version != '' }}
-            # Versioned tags from semantic-release (when passed as input)
-            type=raw,value=v${{ inputs.release-version }},enable=${{ inputs.release-version != '' }}
-            type=raw,value=${{ inputs.release-version }},enable=${{ inputs.release-version != '' }}
+            type=raw,value=latest,enable=${{ inputs.release-version != '' && !contains(inputs.release-version, '-') }}
+            # Versioned tags from semantic-release or git tags (with v prefix)
+            type=raw,value=${{ inputs.release-version }},enable=${{ inputs.release-version != '' && startsWith(inputs.release-version, 'v') }}
+            # Versioned tags from semantic-release (without v prefix, add it)
+            type=raw,value=v${{ inputs.release-version }},enable=${{ inputs.release-version != '' && !startsWith(inputs.release-version, 'v') }}
+            type=raw,value=${{ inputs.release-version }},enable=${{ inputs.release-version != '' && !startsWith(inputs.release-version, 'v') }}
             # Versioned tags from git tags (when pipeline is triggered by tag)
             type=semver,pattern={{version}}
+            type=semver,pattern=v{{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             # Short SHA tag (7 characters)
@@ -116,12 +119,23 @@ jobs:
         run: |
           echo "## 🏗️ Build Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-
+          
+          # Debug: Show input values
+          echo "**Input release-version**: \`${{ inputs.release-version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**GitHub ref**: \`${{ github.ref }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**GitHub ref_name**: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
           # Show VERSION first if available
           if [[ -n "${{ inputs.release-version }}" ]]; then
-            echo "**Version**: \`v${{ inputs.release-version }}\`" >> $GITHUB_STEP_SUMMARY
+            # Remove 'v' prefix if present for display
+            VERSION="${{ inputs.release-version }}"
+            VERSION_DISPLAY="${VERSION#v}"
+            echo "**Version**: \`v${VERSION_DISPLAY}\`" >> $GITHUB_STEP_SUMMARY
           elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
             echo "**Version**: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Version**: \`not set (development build)\`" >> $GITHUB_STEP_SUMMARY
           fi
 
           echo "**Registry**: ${{ env.REGISTRY }}" >> $GITHUB_STEP_SUMMARY

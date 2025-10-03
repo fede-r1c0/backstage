@@ -66,25 +66,48 @@ jobs:
             npx semantic-release --dry-run
           else
             echo "🚀 Running LIVE release"
-            npx semantic-release
+            # Capture semantic-release output to get version
+            npx semantic-release 2>&1 | tee semantic-output.log
           fi
-
-          # Capture semantic-release outputs
+          
+          # Capture semantic-release outputs - check .version file first (most reliable)
           if [[ -f .version ]]; then
             VERSION=$(cat .version)
             echo "new-release-published=true" >> $GITHUB_OUTPUT
             echo "new-release-version=${VERSION}" >> $GITHUB_OUTPUT
             echo "✅ New release: ${VERSION}"
+            echo "📝 Version file found: ${VERSION}"
           else
-            echo "new-release-published=false" >> $GITHUB_OUTPUT
-            echo "new-release-version=" >> $GITHUB_OUTPUT
-            echo "ℹ️ No new release created"
+            # Fallback: parse from semantic-release output
+            if grep -q "Published release" semantic-output.log 2>/dev/null; then
+              VERSION=$(grep "Published release" semantic-output.log | grep -oP '\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?' | head -n1)
+              if [[ -n "$VERSION" ]]; then
+                echo "new-release-published=true" >> $GITHUB_OUTPUT
+                echo "new-release-version=${VERSION}" >> $GITHUB_OUTPUT
+                echo "✅ New release: ${VERSION}"
+                echo "📝 Version parsed from log: ${VERSION}"
+              else
+                echo "new-release-published=false" >> $GITHUB_OUTPUT
+                echo "new-release-version=" >> $GITHUB_OUTPUT
+                echo "ℹ️ No new release created"
+              fi
+            else
+              echo "new-release-published=false" >> $GITHUB_OUTPUT
+              echo "new-release-version=" >> $GITHUB_OUTPUT
+              echo "ℹ️ No new release created"
+            fi
           fi
 
       - name: 📊 Generate Release Summary
         if: always()
         run: |
           echo "# 🚀 Semantic Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Debug: Show outputs
+          echo "**🐛 Debug Info**:" >> $GITHUB_STEP_SUMMARY
+          echo "- new-release-published: \`${{ steps.semantic.outputs.new_release_published }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- new-release-version: \`${{ steps.semantic.outputs.new_release_version }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
