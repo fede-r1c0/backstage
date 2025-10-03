@@ -1,3 +1,16 @@
+## [1.2.0](https://github.com/fede-r1c0/backstage/compare/v1.1.0...v1.2.0) (2025-10-03)
+
+### ✨ Features
+
+* **ci:** improve pipeline summary with version-first Docker references ([6a55eb7](https://github.com/fede-r1c0/backstage/commit/6a55eb7a27120a152444d4c2ca3f6cef2182d321))
+* **ci:** optimize build job summary and step naming ([5138fd2](https://github.com/fede-r1c0/backstage/commit/5138fd2dec1a0c83e658ad1b3830e67e13a0c108))
+
+### ♻️ Refactors
+
+* **ci:** enhance security scan job naming and documentation ([d8c5e5e](https://github.com/fede-r1c0/backstage/commit/d8c5e5e6378442d5767a25b154dfa9016e019796))
+* **ci:** improve semantic release job documentation ([c2c737f](https://github.com/fede-r1c0/backstage/commit/c2c737fdaa6f9461ce364c384251aed1afc3a97c))
+* **ci:** improve validation job step naming and comments ([9c9304a](https://github.com/fede-r1c0/backstage/commit/9c9304ae549a752726cba8bdb62dd93fbda1c443))
+
 ## [1.1.0](https://github.com/fede-r1c0/backstage/compare/v1.0.1...v1.1.0) (2025-10-02)
 
 ### ⚠ BREAKING CHANGES
