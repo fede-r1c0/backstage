@@ -38,50 +38,50 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write # Para provenance
-      attestations: write # Para SBOM
+      id-token: write # For provenance
+      attestations: write # For SBOM
     outputs:
       digest: ${{ steps.build.outputs.digest }}
       tags: ${{ steps.meta.outputs.tags }}
 
     steps:
-      - name: Checkout repository
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up QEMU
+      - name: 🔧 Set up QEMU (Multi-arch Support)
         uses: docker/setup-qemu-action@v3
         with:
           platforms: linux/amd64,linux/arm64
 
-      - name: Set up Docker Buildx
+      - name: 🔧 Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to GitHub Container Registry
+      - name: 🔐 Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Generar metadata inteligente para tags y labels
-      - name: Docker metadata
+      # Generate smart metadata for tags and labels
+      - name: 🏷️ Generate Docker Metadata & Tags
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # Tag 'latest' solo en main o tags versionados
+            # Tag 'latest' only on main or versioned tags
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
             type=raw,value=latest,enable=${{ inputs.release-version != '' }}
-            # Tags versionados desde semantic-release (cuando se pasa como input)
+            # Versioned tags from semantic-release (when passed as input)
             type=raw,value=v${{ inputs.release-version }},enable=${{ inputs.release-version != '' }}
             type=raw,value=${{ inputs.release-version }},enable=${{ inputs.release-version != '' }}
-            # Tags versionados desde git tags (cuando pipeline es triggereado por tag)
+            # Versioned tags from git tags (when pipeline is triggered by tag)
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            # Tag por SHA corto (7 caracteres)
+            # Short SHA tag (7 characters)
             type=sha,format=short,prefix=
           labels: |
             org.opencontainers.image.title=Backstage
@@ -89,8 +89,8 @@ jobs:
             org.opencontainers.image.vendor=${{ github.repository_owner }}
             maintainer=${{ github.repository_owner }}
 
-      # Build y push multi-arch con todas las optimizaciones
-      - name: Build and push Docker image
+      # Build and push multi-arch with all optimizations
+      - name: 🏗️ Build & Push Multi-arch Image
         id: build
         uses: docker/build-push-action@v5
         with:
@@ -100,10 +100,10 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # ✅ Supply Chain Security habilitada
+          # ✅ Supply Chain Security enabled
           provenance: true
           sbom: true
-          # Cache optimizado (solo GHA, más rápido)
+          # Optimized cache (GHA only, faster)
           cache-from: type=gha,scope=backstage-build
           cache-to: type=gha,scope=backstage-build,mode=max
           # Build args
@@ -111,37 +111,55 @@ jobs:
             BUILDKIT_INLINE_CACHE=1
             NODE_ENV=production
 
-      # Summary mejorado con información del build
-      - name: Build summary
+      # Enhanced summary with build information
+      - name: 📊 Generate Build Summary
         run: |
           echo "## 🏗️ Build Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Show VERSION first if available
+          if [[ -n "${{ inputs.release-version }}" ]]; then
+            echo "**Version**: \`v${{ inputs.release-version }}\`" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "**Version**: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
           echo "**Registry**: ${{ env.REGISTRY }}" >> $GITHUB_STEP_SUMMARY
           echo "**Image**: ${{ env.IMAGE_NAME }}" >> $GITHUB_STEP_SUMMARY
           echo "**Digest**: \`${{ steps.build.outputs.digest }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+
           echo "### 🏷️ Tags Created" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+
           echo "### 🐳 Pull Commands" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          echo "# By digest (immutable, most secure)" >> $GITHUB_STEP_SUMMARY
-          echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Show command by version FIRST
+          if [[ -n "${{ inputs.release-version }}" ]]; then
+            echo "# By version tag (recommended)" >> $GITHUB_STEP_SUMMARY
+            echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:v${{ inputs.release-version }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "# By version tag (recommended)" >> $GITHUB_STEP_SUMMARY
+            echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
           if [[ "${{ github.ref }}" == "refs/heads/main" ]] || [[ "${{ github.ref }}" == refs/tags/* ]]; then
             echo "# By latest tag" >> $GITHUB_STEP_SUMMARY
             echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
-          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            echo "# By version tag" >> $GITHUB_STEP_SUMMARY
-            echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-          fi
+
           echo "# By short SHA (7 chars)" >> $GITHUB_STEP_SUMMARY
           echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# By digest (immutable, most secure)" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### ✅ Features" >> $GITHUB_STEP_SUMMARY
