@@ -33,7 +33,7 @@
   "devDependencies": {
     "@backstage/cli": "^0.34.1",
     "@backstage/e2e-test-utils": "^0.1.1",
-    "@playwright/test": "^1.32.3",
+    "@playwright/test": "^1.56.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.0",
     "@semantic-release/exec": "^6.0.3",
