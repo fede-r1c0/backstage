@@ -4013,26 +4013,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-proxy-backend@npm:^0.6.5":
-  version: 0.6.5
-  resolution: "@backstage/plugin-proxy-backend@npm:0.6.5"
+"@backstage/plugin-proxy-backend@npm:^0.6.6":
+  version: 0.6.6
+  resolution: "@backstage/plugin-proxy-backend@npm:0.6.6"
   dependencies:
-    "@backstage/backend-plugin-api": "npm:^1.4.2"
-    "@backstage/plugin-proxy-node": "npm:^0.1.7"
-    "@backstage/types": "npm:^1.2.1"
+    "@backstage/backend-plugin-api": "npm:^1.4.3"
+    "@backstage/plugin-proxy-node": "npm:^0.1.8"
+    "@backstage/types": "npm:^1.2.2"
     express-promise-router: "npm:^4.1.0"
     http-proxy-middleware: "npm:^2.0.0"
-  checksum: 10c0/30c2216f92ea4bde2b3495832d0ff9caa285af02865e03d01a80bdad772de90cbc9029575ce57a4af202979ab718b2ddc8ce9fe9ca350a774411224c7a5d7fb0
+  checksum: 10c0/51d46743ae8a5974e571dd43647df38a46e08efe79794fe666569594788765b4b9ac2bc1b8d8e2cff5ed953a72f3f8833ec899dd66bff1992494ffd94982d0d4
   languageName: node
   linkType: hard
 
-"@backstage/plugin-proxy-node@npm:^0.1.7":
-  version: 0.1.7
-  resolution: "@backstage/plugin-proxy-node@npm:0.1.7"
+"@backstage/plugin-proxy-node@npm:^0.1.8":
+  version: 0.1.8
+  resolution: "@backstage/plugin-proxy-node@npm:0.1.8"
   dependencies:
-    "@backstage/backend-plugin-api": "npm:^1.4.2"
+    "@backstage/backend-plugin-api": "npm:^1.4.3"
     http-proxy-middleware: "npm:^2.0.0"
-  checksum: 10c0/2bb69e053aa4518e5135a539eaafb4e6a5d432c78ae2a16b1d9ffca00855ec9b91e1fcd77c9c61bc1d17bd0b33853d35b4217395fe880de349500d4009edf4c6
+  checksum: 10c0/3d9a437ba830451ce8c47704d658f2f0a092f9ea41b9e2487b1e416fc491f5f81a4891afb4945b7e6597f9bff1099b800fbb39391227f66430b0f1ba2b316916
   languageName: node
   linkType: hard
 
@@ -16294,7 +16294,7 @@ __metadata:
     "@backstage/plugin-permission-backend-module-allow-all-policy": "npm:^0.2.11"
     "@backstage/plugin-permission-common": "npm:^0.9.1"
     "@backstage/plugin-permission-node": "npm:^0.10.4"
-    "@backstage/plugin-proxy-backend": "npm:^0.6.5"
+    "@backstage/plugin-proxy-backend": "npm:^0.6.6"
     "@backstage/plugin-scaffolder-backend": "npm:^2.2.0"
     "@backstage/plugin-scaffolder-backend-module-github": "npm:^0.9.0"
     "@backstage/plugin-scaffolder-backend-module-notifications": "npm:^0.1.14"
