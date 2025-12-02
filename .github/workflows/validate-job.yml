@@ -7,10 +7,10 @@ on:
         description: "Node.js version"
         required: false
         type: string
-        default: "20.19.5"
+        default: "20.19.6"
 
 env:
-  NODE_VERSION: ${{ inputs.node-version || '20.19.5' }}
+  NODE_VERSION: ${{ inputs.node-version || '20.19.6' }}
 
 jobs:
   # Job 1: Tests

@@ -7,7 +7,7 @@ on:
         description: "Node.js version"
         required: false
         type: string
-        default: "20.19.5"
+        default: "20.19.6"
       registry:
         description: "Container registry"
         required: false
@@ -29,7 +29,7 @@ on:
 env:
   REGISTRY: ${{ inputs.registry || 'ghcr.io' }}
   IMAGE_NAME: ${{ github.repository_owner }}/backstage
-  NODE_VERSION: ${{ inputs.node-version || '20.19.5' }}
+  NODE_VERSION: ${{ inputs.node-version || '20.19.6' }}
 
 jobs:
   build:
