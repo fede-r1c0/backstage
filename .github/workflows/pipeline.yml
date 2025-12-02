@@ -11,7 +11,7 @@ on:
     types: [created]
 
 env:
-  NODE_VERSION: "20.19.5"
+  NODE_VERSION: "20.19.6"
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/backstage
 
