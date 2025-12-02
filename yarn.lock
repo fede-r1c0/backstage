@@ -3375,9 +3375,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-catalog-backend-module-scaffolder-entity-model@npm:^0.2.11":
+"@backstage/plugin-catalog-backend-module-scaffolder-entity-model@npm:^0.2.13":
   version: 0.2.11
-  resolution: "@backstage/plugin-catalog-backend-module-scaffolder-entity-model@npm:0.2.11"
+  resolution: "@backstage/plugin-catalog-backend-module-scaffolder-entity-model@npm:0.2.13"
   dependencies:
     "@backstage/backend-plugin-api": "npm:^1.4.2"
     "@backstage/catalog-model": "npm:^1.7.5"
@@ -4396,7 +4396,7 @@ __metadata:
     "@backstage/integration": "npm:^1.17.1"
     "@backstage/plugin-auth-node": "npm:^0.6.6"
     "@backstage/plugin-bitbucket-cloud-common": "npm:^0.3.1"
-    "@backstage/plugin-catalog-backend-module-scaffolder-entity-model": "npm:^0.2.11"
+    "@backstage/plugin-catalog-backend-module-scaffolder-entity-model": "npm:^0.2.13"
     "@backstage/plugin-catalog-node": "npm:^1.18.0"
     "@backstage/plugin-events-node": "npm:^0.4.14"
     "@backstage/plugin-permission-common": "npm:^0.9.1"
@@ -4477,6 +4477,25 @@ __metadata:
     uri-template: "npm:^2.0.0"
     zen-observable: "npm:^0.10.0"
   checksum: 10c0/aa61ddd75025f8e7374a8ead63f9f9ba96810131166eb35ac314738297cb1a63dea5b35730f209d1531372c4f406b7a624e81d366c8e5195ba716f262808b419
+  languageName: node
+  linkType: hard
+
+"@backstage/plugin-scaffolder-common@npm:^1.7.2":
+  version: 1.7.2
+  resolution: "@backstage/plugin-scaffolder-common@npm:1.7.2"
+  dependencies:
+    "@backstage/catalog-model": "npm:^1.7.5"
+    "@backstage/errors": "npm:^1.2.7"
+    "@backstage/integration": "npm:^1.18.1"
+    "@backstage/plugin-permission-common": "npm:^0.9.2"
+    "@backstage/types": "npm:^1.2.2"
+    "@microsoft/fetch-event-source": "npm:^2.0.1"
+    "@types/json-schema": "npm:^7.0.9"
+    cross-fetch: "npm:^4.0.0"
+    json-schema: "npm:^0.4.0"
+    uri-template: "npm:^2.0.0"
+    zen-observable: "npm:^0.10.0"
+  checksum: 10c0/2a22e7bb7a556f9dfc19b5a6457cf81294edc51e86d3369bdd8d32424ee48a300cfb7fd4d269f93a58d577b3a11e906fb1e622eebd55906e1ba6baf411e81704
   languageName: node
   linkType: hard
 
@@ -16474,7 +16493,7 @@ __metadata:
     "@backstage/plugin-auth-node": "npm:^0.6.7"
     "@backstage/plugin-catalog-backend": "npm:^3.1.1"
     "@backstage/plugin-catalog-backend-module-logs": "npm:^0.1.15"
-    "@backstage/plugin-catalog-backend-module-scaffolder-entity-model": "npm:^0.2.11"
+    "@backstage/plugin-catalog-backend-module-scaffolder-entity-model": "npm:^0.2.13"
     "@backstage/plugin-kubernetes-backend": "npm:^0.20.0"
     "@backstage/plugin-notifications-backend": "npm:^0.5.10"
     "@backstage/plugin-permission-backend": "npm:^0.7.3"
