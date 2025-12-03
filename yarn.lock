@@ -1872,7 +1872,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/backend-defaults@npm:^0.12.0, @backstage/backend-defaults@npm:^0.12.1":
+"@backstage/backend-defaults@npm:^0.12.1":
   version: 0.12.1
   resolution: "@backstage/backend-defaults@npm:0.12.1"
   dependencies:
@@ -15798,7 +15798,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backend@workspace:packages/backend"
   dependencies:
-    "@backstage/backend-defaults": "npm:^0.12.0"
+    "@backstage/backend-defaults": "npm:^0.13.1"
     "@backstage/cli": "npm:^0.34.1"
     "@backstage/config": "npm:^1.3.5"
     "@backstage/plugin-app-backend": "npm:^0.5.6"
